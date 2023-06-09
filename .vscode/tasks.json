@@ -1,0 +1,18 @@
+{
+   "version": "2.0.0",
+   "tasks": [
+      {
+         "type": "npm",
+         "script": "start",
+         "group": "build",
+         "label": "npm: start",
+         "detail": "react-scripts start",
+         "presentation": {
+            "clear": true,
+            "showReuseMessage": false,
+            "reveal": "silent",
+            "revealProblems": "onProblem"
+         }
+      }
+   ]
+}
