@@ -1,7 +1,9 @@
-import { RouterProvider, createBrowserRouter } from "react-router-dom"
+import { Navigate, RouterProvider, createBrowserRouter } from "react-router-dom"
+import { store } from "./store"
 
 import { Layout } from "./layouts"
-import { HomePage, LoginPage, RegisterPage } from "./pages"
+import { ArticlePage, EditorPage, HomePage, LoginPage, RegisterPage, SettingsPage, ProfilePage } from "./pages"
+import { Provider } from "react-redux"
 
 const router = createBrowserRouter([
    {
@@ -19,6 +21,26 @@ const router = createBrowserRouter([
          {
             path: "register",
             element: <RegisterPage />
+         },
+         {
+            path: "article/:slug",
+            element: <ArticlePage />
+         },
+         {
+            path: "profile/:username",
+            element: <ProfilePage />
+         },
+         {
+            path: "settings",
+            element: <SettingsPage />
+         },
+         {
+            path: "editor",
+            element: <EditorPage />
+         },
+         {
+            path: "*",
+            element: <Navigate to="/" replace />
          }
       ]
    }
@@ -26,6 +48,8 @@ const router = createBrowserRouter([
 
 export function App() {
    return (
-      <RouterProvider router={router}></RouterProvider>
+      <Provider store={store}>
+         <RouterProvider router={router} />
+      </Provider>
    )
 }
