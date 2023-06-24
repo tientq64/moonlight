@@ -12,3 +12,10 @@ export interface IArticle {
    favoritesCount: number
    author: IProfile
 }
+
+export interface IArticleEdit {
+   title: string
+   description: string
+   body: string
+   tagList: string[]
+}

@@ -1,0 +1,7 @@
+@import "bootstrap";
+
+.markdown {
+   img {
+      @extend .img-thumbnail;
+   }
+}

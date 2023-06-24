@@ -2,6 +2,8 @@
    "editor.tabSize": 3,
    "editor.insertSpaces": true,
    "editor.wordWrap": "on",
+   "editor.rulers": [100],
+   "html.format.wrapLineLength": 100,
    "typescript.format.semicolons": "remove",
    "typescript.preferences.quoteStyle": "double"
 }
