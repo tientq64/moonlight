@@ -1,18 +1,17 @@
-import classNames from "classnames"
 import dayjs from "dayjs"
 import { MouseEvent, useEffect, useState } from "react"
 import { Button, Card, Spinner } from "react-bootstrap"
 import { useSelector } from "react-redux"
 import { Link, useNavigate } from "react-router-dom"
 import { RootState } from "../../store"
-import { IArticle } from "../../types"
-import { deleteArticlesFavorite, postArticlesFavorite, truncateString } from "../../utils"
+import { ArticleProps } from "./types"
+import { deleteArticlesFavorite, postArticlesFavorite } from "../../apis"
+import { truncateString } from "../../utils"
 
-type Props = {
-   article: IArticle
-}
-
-export const Article = ({ article }: Props) => {
+export const Article = ({
+   article,
+   onClickTag
+}: ArticleProps) => {
    const user = useSelector((state: RootState) => state.user.user)
    const navigate = useNavigate()
 
@@ -20,7 +19,7 @@ export const Article = ({ article }: Props) => {
    const [favoritesCount, setFavoritesCount] = useState(article.favoritesCount)
    const [favoriting, setFavoriting] = useState(false)
 
-   const handleClickFavoriteButton = () => {
+   const handleClickFavoriteButton = (): void => {
       if (!user) {
          navigate("/login")
          return
@@ -45,6 +44,11 @@ export const Article = ({ article }: Props) => {
          .finally(() => {
             setFavoriting(false)
          })
+   }
+
+   const handleClickTag = (tag: string, event: MouseEvent): void => {
+      event.preventDefault()
+      onClickTag?.(tag)
    }
 
    useEffect(() => {
@@ -105,11 +109,9 @@ export const Article = ({ article }: Props) => {
                         <Button
                            key={index}
                            className="py-0"
-                           variant="outline-secondary"
+                           variant="outline-primary"
                            size="sm"
-                           onClick={(event: MouseEvent) => {
-                              event.preventDefault()
-                           }}
+                           onClick={handleClickTag.bind(null, tag)}
                         > {truncateString(tag, 20)}
                         </Button>
                      ))}

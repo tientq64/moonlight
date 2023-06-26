@@ -5,8 +5,9 @@ import { Button, Col, Container, Form, FormControl, FormGroup, Row } from "react
 import { Navigate } from "react-router-dom"
 import { FormControlError } from "../../components"
 import { IUser } from "../../types"
-import { putUser, useUser } from "../../utils"
 import { validationSchema } from "./validationSchema"
+import { putUser } from "../../apis"
+import { useUser } from "../../hooks"
 
 type Values = {
    image: string

@@ -85,8 +85,8 @@ $red: #e9434c;
    border-radius: $border-radius;
 }
 
-.max-h-100vh {
-   max-height: 100vh;
+.max-h-75vh {
+   max-height: 75vh;
 }
 
 .bg-opacity-15 {
@@ -99,6 +99,10 @@ $red: #e9434c;
 
 .text-pre-line {
    white-space: pre-line;
+}
+
+.text-gray-400 {
+   color: $gray-400;
 }
 
 .cursor-pointer {

@@ -1,0 +1,9 @@
+@import "bootstrap";
+
+.CodeMirror {
+   @extend .form-control;
+   height: 100% !important;
+   min-height: 16em;
+   max-height: 75vh;
+   padding: 0;
+}

@@ -1,6 +1,6 @@
 export * from "./App"
 export * from "./Article"
-export * from "./CodeMirrorEditor"
+export * from "./ArticleComment"
 export * from "./EmptyState"
 export * from "./FormControlError"
 export * from "./Header"

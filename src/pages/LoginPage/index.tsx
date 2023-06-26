@@ -1,11 +1,12 @@
 import { Formik, FormikHelpers } from "formik"
-import { Button, Container, Form, FormControl, FormGroup } from "react-bootstrap"
-import { useDispatch } from "react-redux"
-import { Link, useNavigate } from "react-router-dom"
+import { Button, Container, Form, FormControl, FormGroup, Spinner } from "react-bootstrap"
+import { Link, Navigate, useNavigate } from "react-router-dom"
+import { toast } from "react-toastify"
+import { postUsersLogin } from "../../apis"
 import { FormControlError } from "../../components"
-import { setUser } from "../../store/reducers/user"
-import { postUsersLogin } from "../../utils"
 import { validationSchema } from "./validationSchema"
+import { useUser } from "../../hooks"
+import { IUser } from "../../types"
 
 interface Values {
    email: string
@@ -13,7 +14,7 @@ interface Values {
 }
 
 export function LoginPage() {
-   const dispatch = useDispatch()
+   const [user, setUser] = useUser()
    const navigate = useNavigate()
 
    const initialValues: Values = {
@@ -24,21 +25,25 @@ export function LoginPage() {
    const onSubmitLoginForm = (values: Values, actions: FormikHelpers<Values>) => {
       postUsersLogin({ user: values })
          .then((response) => {
-            const { user } = response.data
-            dispatch(setUser(user))
-            localStorage.setItem("userToken", user.token)
-            navigate("/")
+            const newUser: IUser = response.data.user
+            setUser(newUser)
          })
          .catch((reason) => {
             const { errors } = reason.response.data
             for (const field in errors) {
                const messages = errors[field]
-               alert(`${field} ${messages[0]}`)
+               toast(`${field} ${messages[0]}`, {
+                  type: "error"
+               })
             }
          })
          .finally(() => {
             actions.setSubmitting(false)
          })
+   }
+
+   if (user) {
+      return <Navigate to="/" replace />
    }
 
    return (
@@ -56,7 +61,7 @@ export function LoginPage() {
                   validationSchema={validationSchema}
                   onSubmit={onSubmitLoginForm}
                >
-                  {({ errors, isSubmitting, handleSubmit, getFieldProps }) => (
+                  {({ isSubmitting, handleSubmit, getFieldProps }) => (
                      <Form onSubmit={handleSubmit}>
                         <FormGroup className="mt-3">
                            <div className="fw-semibold">Email</div>
@@ -80,6 +85,9 @@ export function LoginPage() {
 
                         <div className="d-grid mt-4">
                            <Button type="submit" disabled={isSubmitting}>
+                              {isSubmitting && (
+                                 <Spinner className="me-2" size="sm" />
+                              )}
                               Sign in
                            </Button>
                         </div>

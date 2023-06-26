@@ -1,9 +1,8 @@
 import classNames from "classnames"
 import { Button, Container, Dropdown, Nav, Navbar } from "react-bootstrap"
 import { Link, NavLink } from "react-router-dom"
-import logo from "../../assets/images/logo.png"
-import { useLogout, useUser } from "../../utils"
 import styles from "./styles.module.scss"
+import { useUser, useLogout } from "../../hooks"
 
 export const Header = () => {
    const [user] = useUser()

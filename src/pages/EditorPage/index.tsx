@@ -1,15 +1,19 @@
 import { AxiosResponse } from "axios"
 import classNames from "classnames"
+import CodeMirror from "codemirror"
+import "codemirror/lib/codemirror.css"
+import "codemirror/mode/markdown/markdown"
 import { FormikProvider, useFormik } from "formik"
-import { useEffect, useRef, useState } from "react"
+import { UIEvent, useEffect, useRef, useState } from "react"
 import { Button, Col, Container, Form, FormControl, FormGroup, Row, Spinner } from "react-bootstrap"
-import { useNavigate, useParams } from "react-router-dom"
+import { Navigate, useNavigate, useParams } from "react-router-dom"
 import { TagsInput } from "react-tag-input-component"
-import { CodeMirrorEditor, FormControlError, Markdown } from "../../components"
+import { getArticlesSlug, postArticles, putArticlesSlug } from "../../apis"
+import { FormControlError, Markdown } from "../../components"
+import { useUser } from "../../hooks"
 import { IArticle, IArticleEdit } from "../../types"
-import { getArticlesSlug, postArticles, putArticlesSlug, useUser } from "../../utils"
+import "./styles.scss"
 import { validationSchema } from "./validationSchema"
-import styles from "./styles.module.scss"
 
 type Params = {
    slug?: string
@@ -17,22 +21,19 @@ type Params = {
 
 type ArticleValues = IArticleEdit | IArticle
 
+let cm: CodeMirror.EditorFromTextArea | null = null
+let isCmScrolling: boolean = true
+
 export function EditorPage() {
    const { slug } = useParams<Params>()
    const [user] = useUser()
    const navigate = useNavigate()
 
-   if (!user) {
-      navigate("/login")
-   }
-
    const [article, setArticle] = useState<ArticleValues | null>(null)
    const [isLoadingArticle, setIsLoadingArticle] = useState<boolean>(false)
    const [isPreviewBody, setIsPreviewBody] = useState<boolean>(true)
-
-   const handleClickTogglePreviewBody = () => {
-      setIsPreviewBody(!isPreviewBody)
-   }
+   const bodyTextAreaRef = useRef(null)
+   const bodyPreviewRef = useRef(null)
 
    const formik = useFormik<ArticleValues>({
       initialValues: {
@@ -58,13 +59,81 @@ export function EditorPage() {
       }
    })
 
-   const handleChangeCodeMirrorEditorBody = (value: string): void => {
-      formik.setFieldValue("body", value)
+   const handleClickTogglePreviewBody = () => {
+      setIsPreviewBody(!isPreviewBody)
+   }
+
+   const handleScrollPreviewBody = (event: UIEvent<HTMLDivElement>) => {
+      if (!cm) return
+      if (isCmScrolling) return
+
+      const bodyPreviewEl: any = bodyPreviewRef.current
+      if (!bodyPreviewEl) return
+
+      const scrollInfo: CodeMirror.ScrollInfo = cm.getScrollInfo()
+
+      const bodyPreviewScrollRatio: number = bodyPreviewEl.scrollTop / (bodyPreviewEl.scrollHeight - bodyPreviewEl.clientHeight)
+      const cmScrollTop: number = Math.floor(
+         bodyPreviewScrollRatio * (scrollInfo.height - scrollInfo.clientHeight)
+      )
+      cm.scrollTo(0, cmScrollTop)
    }
 
    const handleChangeTagList = (tagList: string[]): void => {
       formik.setFieldValue("tagList", tagList)
    }
+
+   const handleScrollCodeMirrorBody = (cm: CodeMirror.Editor): void => {
+      if (!isCmScrolling) return
+
+      const bodyPreviewEl: any = bodyPreviewRef.current
+      if (!bodyPreviewEl) return
+
+      const scrollInfo: CodeMirror.ScrollInfo = cm.getScrollInfo()
+      const cmScrollRatio: number = scrollInfo.top / (scrollInfo.height - scrollInfo.clientHeight)
+      const bodyPreviewScrollTop: number = Math.floor(
+         cmScrollRatio * (bodyPreviewEl.scrollHeight - bodyPreviewEl.clientHeight)
+      )
+      bodyPreviewEl.scrollTop = bodyPreviewScrollTop
+   }
+
+   const handleCursorActivityCodeMirrorBody = (cm: CodeMirror.Editor): void => {
+      isCmScrolling = true
+   }
+
+   useEffect(() => {
+      const textAreaEl = bodyTextAreaRef.current
+      if (!textAreaEl) return
+
+      cm = CodeMirror.fromTextArea(textAreaEl, {
+         mode: "markdown",
+         lineWrapping: true,
+         lineNumbers: true,
+         showCursorWhenSelecting: true
+      })
+      cm.setValue(formik.values.body)
+      cm.clearHistory()
+      cm.on("change", (cm: CodeMirror.Editor) => {
+         formik.setFieldValue("body", cm.getValue())
+      })
+      cm.on("scroll", handleScrollCodeMirrorBody)
+      cm.on("cursorActivity", handleCursorActivityCodeMirrorBody)
+
+      return () => {
+         if (!cm) return
+         cm.toTextArea()
+         cm = null
+      }
+   }, [article])
+
+   useEffect(() => {
+      if (!cm) return
+      cm.refresh()
+      if (isPreviewBody) {
+         isCmScrolling = true
+         handleScrollCodeMirrorBody(cm)
+      }
+   }, [isPreviewBody])
 
    useEffect(() => {
       if (slug) {
@@ -72,8 +141,12 @@ export function EditorPage() {
          getArticlesSlug(slug)
             .then((response) => {
                const article2: IArticle = response.data.article
-               setArticle(article2)
-               formik.setValues(article2)
+               if (article2.author.username === user?.username) {
+                  setArticle(article2)
+                  formik.setValues(article2)
+               } else {
+                  navigate("/editor", { replace: true })
+               }
             })
             .finally(() => {
                setIsLoadingArticle(false)
@@ -87,7 +160,11 @@ export function EditorPage() {
          }
          setArticle(newArticle)
       }
-   }, [])
+   }, [slug])
+
+   if (!user) {
+      return <Navigate to="/login" replace />
+   }
 
    return (
       <Container className="py-4">
@@ -118,7 +195,7 @@ export function EditorPage() {
                   <FormGroup className="mt-3">
                      <Row className="fw-semibold">
                         <Col>Body</Col>
-                        <Col className="d-none d-lg-block">
+                        <Col>
                            <Button
                               className="float-end text-decoration-none py-0"
                               size="sm"
@@ -129,18 +206,25 @@ export function EditorPage() {
                         </Col>
                      </Row>
 
-                     <Row className="flex-nowrap gap-4 g-0">
-                        <Col>
-                           <CodeMirrorEditor
-                              disabled={formik.isSubmitting}
-                              placeholder="Write your article (in Markdown)"
-                              value={formik.values.body}
-                              onChange={handleChangeCodeMirrorEditorBody}
-                           />
+                     <Row className="g-0">
+                        <Col
+                           className={classNames(
+                              isPreviewBody && "col-lg-6 pe-3"
+                           )}
+                           onMouseDown={() => isCmScrolling = true}
+                           onWheel={() => isCmScrolling = true}
+                        >
+                           <textarea ref={bodyTextAreaRef} />
                         </Col>
 
                         {isPreviewBody && (
-                           <Col className="max-h-100vh d-none d-lg-block overflow-auto text-break">
+                           <Col
+                              ref={bodyPreviewRef}
+                              className="col-6 ps-3 max-h-75vh d-none d-lg-block overflow-auto text-break"
+                              onMouseDown={() => isCmScrolling = false}
+                              onWheel={() => isCmScrolling = false}
+                              onScroll={handleScrollPreviewBody}
+                           >
                               <Markdown content={formik.values.body} />
                            </Col>
                         )}

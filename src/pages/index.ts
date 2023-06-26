@@ -6,4 +6,3 @@ export * from "./NotFoundPage"
 export * from "./ProfilePage"
 export * from "./RegisterPage"
 export * from "./SettingsPage"
-

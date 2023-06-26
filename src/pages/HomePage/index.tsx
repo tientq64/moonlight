@@ -1,15 +1,14 @@
 import { useEffect, useState } from "react"
 import { Col, Container, Nav, Row, Spinner, Tab } from "react-bootstrap"
-import { useSelector } from "react-redux"
+import { getArticles, getArticlesFeed, getTags } from "../../apis"
 import logo from "../../assets/images/logo.png"
 import { Article, EmptyState, Pagination2 } from "../../components"
-import { RootState } from "../../store"
+import { useUser } from "../../hooks"
 import { IArticle } from "../../types"
-import { getArticles, getTags } from "../../utils"
 import styles from "./styles.module.scss"
 
 export function HomePage() {
-   const user = useSelector((state: RootState) => state.user.user)
+   const [user] = useUser()
 
    const [tags, setTags] = useState<string[]>([])
    const [activedTab, setActivedTab] = useState<string>("globalFeed")
@@ -19,6 +18,10 @@ export function HomePage() {
    const [articlesCount, setArticlesCount] = useState<number>(0)
    const [pageSize, setPageSize] = useState<number>(10)
    const [page, setPage] = useState<number>(0)
+
+   const handleClickArticleTag = (tag: string): void => {
+      setActivedTab(`#${tag}`)
+   }
 
    useEffect(() => {
       getTags()
@@ -35,8 +38,15 @@ export function HomePage() {
       setIsLoadingArticles(true)
       setArticles([])
       setArticlesCount(0)
+
+      const funcApi = activedTab === "yourFeed" ? getArticlesFeed : getArticles
       const tag = activedTab[0] === "#" ? activedTab?.substring(1) : undefined
-      getArticles({ limit: pageSize, offset: page * pageSize, tag })
+
+      funcApi({
+         limit: pageSize,
+         offset: page * pageSize,
+         tag
+      })
          .then((response) => {
             setArticles(response.data.articles)
             setArticlesCount(response.data.articlesCount)
@@ -71,12 +81,22 @@ export function HomePage() {
                         variant="pills"
                         style={{ top: 96 }}
                      >
+                        {user && (
+                           <Nav.Item>
+                              <Nav.Link eventKey="yourFeed">
+                                 <i className="fas fa-user me-2" />
+                                 Your feed
+                              </Nav.Link>
+                           </Nav.Item>
+                        )}
+
                         <Nav.Item>
                            <Nav.Link eventKey="globalFeed">
-                              <i className="fas fa-globe me-2" />
+                              <i className="far fa-globe me-2" />
                               Global feed
                            </Nav.Link>
                         </Nav.Item>
+
                         {tags.map((tag, index) => (
                            <Nav.Item key={index}>
                               <Nav.Link eventKey={"#" + tag}>
@@ -97,7 +117,11 @@ export function HomePage() {
                         )}
 
                         {!isLoadingArticles && articles.map((article, index) => (
-                           <Article key={index} article={article} />
+                           <Article
+                              key={index}
+                              article={article}
+                              onClickTag={handleClickArticleTag}
+                           />
                         ))}
 
                         {!isLoadingArticles && articles.length === 0 && (

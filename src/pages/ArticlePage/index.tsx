@@ -1,18 +1,24 @@
 import dayjs from "dayjs"
 import { FormikProvider, useFormik } from "formik"
 import { KeyboardEvent, useEffect, useMemo, useState } from "react"
-import { Button, Card, Col, Container, Form, FormControl, Row, Spinner } from "react-bootstrap"
+import { Button, Col, Container, Form, FormControl, Row, Spinner } from "react-bootstrap"
 import { Link, useParams } from "react-router-dom"
-import { Markdown } from "../../components"
+import {
+   getArticlesSlug,
+   getArticlesSlugComments,
+   postArticlesSlugComments
+} from "../../apis"
+import { ArticleComment, Markdown } from "../../components"
+import { useUser } from "../../hooks"
 import { IArticle, IArticleComment } from "../../types"
-import { deleteArticlesSlugCommentsId, getArticlesSlug, getArticlesSlugComments, postArticlesSlugComments, truncateString, useUser } from "../../utils"
+import { truncateString } from "../../utils"
 import { commentSchema } from "./commentSchema"
 
 type Params = {
    slug?: string
 }
 
-type CommentValues = {
+interface CommentValues {
    body: string
 }
 
@@ -23,7 +29,6 @@ export function ArticlePage() {
    const [article, setArticle] = useState<IArticle | null>(null)
    const [comments, setComments] = useState<IArticleComment[]>([])
    const [isLoadingComments, setIsLoadingComments] = useState<boolean>(false)
-   const [isDeletingComment, setIsDeletingComment] = useState<boolean>(false)
 
    const isMyArticle: boolean = useMemo(() => {
       return Boolean(user && article && user.username === article.author.username)
@@ -64,21 +69,13 @@ export function ArticlePage() {
       }
    }
 
-   const handleClickDeleteComment = (comment: IArticleComment): void => {
-      if (!slug) return
-
-      setIsDeletingComment(true)
-
-      deleteArticlesSlugCommentsId(slug, comment.id)
-         .then((response) => {
-            const newComments = comments.filter((comment2: IArticleComment) => {
-               return comment2.id !== comment.id
-            })
-            setComments(newComments)
+   const handleDeletedComment = (commentId: number): void => {
+      setComments((prevComments) => {
+         const newComments: IArticleComment[] = prevComments.filter((comment2: IArticleComment) => {
+            return comment2.id !== commentId
          })
-         .finally(() => {
-            setIsDeletingComment(false)
-         })
+         return newComments
+      })
    }
 
    useEffect(() => {
@@ -205,53 +202,12 @@ export function ArticlePage() {
                      )}
 
                      {comments.map((comment) => (
-                        <Card
+                        <ArticleComment
                            key={comment.id}
-                           className="mt-4"
-                        >
-                           <Card.Header>
-                              <div className="row justify-content-between">
-                                 <div className="col-auto">
-                                    <div className="row">
-                                       <div className="col">
-                                          <Link to={`/profile/${comment.author.username}`}>
-                                             <img
-                                                className="rounded"
-                                                src={comment.author.image}
-                                                width={32}
-                                                alt="Avatar"
-                                             />
-                                          </Link>
-                                       </div>
-                                       <div className="col text-nowrap lh-1">
-                                          <Link
-                                             className="d-block text-decoration-none"
-                                             to={`/profile/${comment.author.username}`}
-                                          > {comment.author.username}
-                                          </Link>
-                                          <small className="text-muted">
-                                             {dayjs(comment.updatedAt).format("MMMM D, YYYY, HH:mm")}
-                                          </small>
-                                       </div>
-                                    </div>
-                                 </div>
-                                 <div className="col-auto">
-                                    <Button
-                                       className="text-danger text-decoration-none"
-                                       size="sm"
-                                       variant="link"
-                                       // disabled={false}
-                                       onClick={handleClickDeleteComment.bind(null, comment)}
-                                    > Delete
-                                    </Button>
-                                 </div>
-                              </div>
-                           </Card.Header>
-
-                           <Card.Body>
-                              {comment.body}
-                           </Card.Body>
-                        </Card>
+                           article={article}
+                           comment={comment}
+                           onDeleted={handleDeletedComment}
+                        />
                      ))}
                   </div>
                </Container>

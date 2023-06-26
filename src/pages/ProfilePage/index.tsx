@@ -1,18 +1,17 @@
 import classNames from "classnames"
 import { useEffect, useMemo, useState } from "react"
 import { Button, Col, Container, Nav, Row, Spinner, Tab } from "react-bootstrap"
-import { useSelector } from "react-redux"
 import { Link, useNavigate, useParams } from "react-router-dom"
-import { Article, EmptyState, Pagination2 } from "../../components"
-import { RootState } from "../../store"
-import { IArticle, IProfile, IUser } from "../../types"
 import {
    GetArticlesParams,
    deleteProfilesUsernameFollow,
    getArticles,
    getProfilesUsername,
    postProfilesUsernameFollow
-} from "../../utils"
+} from "../../apis"
+import { Article, EmptyState, Pagination2 } from "../../components"
+import { useUser } from "../../hooks"
+import { IArticle, IProfile, IUser } from "../../types"
 
 type Params = {
    username: string
@@ -24,8 +23,7 @@ enum Tabs {
 }
 
 export function ProfilePage() {
-   const user = useSelector((state: RootState) => state.user.user)
-
+   const [user] = useUser()
    const navigate = useNavigate()
    const { username } = useParams<Params>()
 
@@ -137,7 +135,7 @@ export function ProfilePage() {
                                  <div className="fs-4">
                                     {profile.username}
                                  </div>
-                                 <p className="mb-1 text-truncate text-secondary">
+                                 <p className="mb-1 text-truncate text-gray-400">
                                     {profile.bio}
                                  </p>
                               </div>
