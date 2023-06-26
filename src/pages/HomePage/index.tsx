@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react"
-import { Col, Container, Nav, Row, Tab } from "react-bootstrap"
+import { Col, Container, Nav, Row, Spinner, Tab } from "react-bootstrap"
 import { useSelector } from "react-redux"
-import { Article, Pagination2 } from "../../components"
+import logo from "../../assets/images/logo.png"
+import { Article, EmptyState, Pagination2 } from "../../components"
 import { RootState } from "../../store"
 import { IArticle } from "../../types"
 import { getArticles, getTags } from "../../utils"
+import styles from "./styles.module.scss"
 
 export function HomePage() {
    const user = useSelector((state: RootState) => state.user.user)
@@ -48,10 +50,13 @@ export function HomePage() {
       <div>
          <div className="py-5 text-center text-bg-dark">
             <h1 className="fs-1 fw-bold">
-               Mo🌖nlight
-               {/* 🌕 or 🌖 */}
+               Mo
+               <img className={styles.bannerLogo} src={logo} alt="Logo" />
+               nlight
             </h1>
-            <div className="lead">A place to share your life (at the end of) every day.</div>
+            <div className="lead">
+               A place to share your life (at the end of) every day.
+            </div>
          </div>
 
          <Container className="my-5">
@@ -87,15 +92,22 @@ export function HomePage() {
                      <Tab.Content>
                         {isLoadingArticles && (
                            <div className="text-center mt-4">
-                              <i className="fas fa-spinner fa-spin fs-2" />
+                              <Spinner />
                            </div>
                         )}
 
-                        {articles.map((article, index) => (
+                        {!isLoadingArticles && articles.map((article, index) => (
                            <Article key={index} article={article} />
                         ))}
 
-                        {!isLoadingArticles && (
+                        {!isLoadingArticles && articles.length === 0 && (
+                           <EmptyState
+                              icon="search"
+                              header="No articles found"
+                           />
+                        )}
+
+                        {!isLoadingArticles && articles.length > 0 && (
                            <Pagination2
                               className="mt-5"
                               current={page}

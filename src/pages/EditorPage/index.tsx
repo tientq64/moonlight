@@ -1,14 +1,14 @@
 import { AxiosResponse } from "axios"
-import { FormikProvider, FormikValues, useFormik } from "formik"
+import classNames from "classnames"
+import { FormikProvider, useFormik } from "formik"
 import { useEffect, useState } from "react"
-import { Button, Col, Container, FormControl, FormGroup, Row } from "react-bootstrap"
-import { Form, useNavigate, useParams } from "react-router-dom"
+import { Button, Col, Container, Form, FormControl, FormGroup, Row } from "react-bootstrap"
+import { Navigate, useNavigate, useParams } from "react-router-dom"
 import { TagsInput } from "react-tag-input-component"
 import { FormControlError, Markdown } from "../../components"
 import { IArticle, IArticleEdit } from "../../types"
-import { getArticlesSlug, markdownToHtml, postArticles, putArticlesSlug } from "../../utils"
+import { getArticlesSlug, postArticles, putArticlesSlug, useUser } from "../../utils"
 import { validationSchema } from "./validationSchema"
-import classNames from "classnames"
 
 type Params = {
    slug?: string
@@ -18,7 +18,13 @@ type ArticleValues = IArticleEdit | IArticle
 
 export function EditorPage() {
    const { slug } = useParams<Params>()
+   const [user] = useUser()
    const navigate = useNavigate()
+
+   if (!user) {
+      navigate("/login")
+      console.log(navigate)
+   }
 
    const [article, setArticle] = useState<ArticleValues | null>()
    const [isPreviewBody, setIsPreviewBody] = useState<boolean>(false)
@@ -105,14 +111,15 @@ export function EditorPage() {
                         <Col>Body</Col>
                         <Col className="d-none d-lg-block">
                            <Button
-                              className="float-end text-decoration-none"
+                              className="float-end text-decoration-none py-0"
+                              size="sm"
                               variant="link"
                               onClick={handleClickTogglePreviewBody}
-                           >
-                              Toggle preview
+                           > Toggle preview
                            </Button>
                         </Col>
                      </Row>
+
                      <Row className="flex-nowrap gap-4 g-0">
                         <Col>
                            <FormControl
@@ -126,6 +133,7 @@ export function EditorPage() {
                               placeholder="Write your article (in Markdown)"
                            />
                         </Col>
+
                         {isPreviewBody && (
                            <Col className="d-none d-lg-block">
                               <Markdown content={formik.values.body} />
@@ -138,7 +146,7 @@ export function EditorPage() {
                   <FormGroup className="mt-3">
                      <div className="fw-semibold">Tag list</div>
                      <TagsInput
-                        classNames={{ tag: "word-break" }}
+                        classNames={{ tag: "text-break" }}
                         name="tagList"
                         disabled={formik.isSubmitting}
                         placeHolder="Enter tags"

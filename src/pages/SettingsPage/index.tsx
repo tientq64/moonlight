@@ -7,24 +7,24 @@ import { Navigate } from "react-router-dom"
 import { RootState } from "../../store"
 import { setUser } from "../../store/reducers/user"
 import { IUser } from "../../types"
-import { putUser } from "../../utils"
+import { putUser, useUser } from "../../utils"
 import { validationSchema } from "./validationSchema"
 import { FormControlError } from "../../components"
 
+type Values = {
+   image: string
+   username: string
+   bio: string
+   email: string
+   password?: string
+}
+
 export function SettingsPage() {
-   const user: IUser | null = useSelector((state: RootState) => state.user.user)
+   const [user] = useUser()
    const dispatch = useDispatch()
 
    if (!user) {
       return <Navigate to="/login" replace />
-   }
-
-   type Values = {
-      image: string
-      username: string
-      bio: string
-      email: string
-      password?: string
    }
 
    const initialValues: Values = {

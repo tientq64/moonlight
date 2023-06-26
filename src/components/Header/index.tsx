@@ -1,6 +1,7 @@
 import classNames from "classnames"
 import { Button, Container, Dropdown, Nav, Navbar } from "react-bootstrap"
-import { Link, NavLink, useNavigate } from "react-router-dom"
+import { Link, NavLink } from "react-router-dom"
+import logo from "../../assets/images/logo.png"
 import { useLogout, useUser } from "../../utils"
 import styles from "./styles.module.scss"
 
@@ -15,16 +16,17 @@ export const Header = () => {
    return (
       <Navbar className={classNames("shadow", styles.navbar)} bg="dark" variant="dark" sticky="top">
          <Container>
-            <Navbar.Brand as={Link} className="fw-semibold" to="/">
+            <Navbar.Brand as={Link} className="fw-semibold d-flex" to="/">
+               {/* <img className={styles.logo} src={logo} alt="Logo" /> */}
                Moonlight
             </Navbar.Brand>
 
             <Navbar.Collapse>
                <Nav className="ms-auto">
-                  <Nav.Link as={NavLink} to="/" end>
+                  {/* <Nav.Link as={NavLink} to="/" end>
                      <i className="fas fa-home me-2"></i>
                      Home
-                  </Nav.Link>
+                  </Nav.Link> */}
 
                   {!user && (
                      <>

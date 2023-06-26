@@ -12,17 +12,15 @@ $white:    #fff !default;
 
 $blue: #62608b;
 $red: #e9434c;
+// $red: #dd2d44;
 
 @import "bootstrap";
-@import "@fortawesome/fontawesome-free/css/all.min.css";
+// @import "@fortawesome/fontawesome-free/css/all.min.css";
+@import "https://cdn.jsdelivr.net/npm/fa6/all.min.css";
 @import "animate.css";
 
 :root {
    --fa-animation-duration: 800ms;
-}
-
-:root {
-   overflow-wrap: anywhere;
 }
 
 .btn-danger {
@@ -95,8 +93,8 @@ $red: #e9434c;
    --bs-bg-opacity: .30;
 }
 
-.word-break {
-   word-break: break-word;
+.text-pre-line {
+   white-space: pre-line;
 }
 
 .cursor-pointer {

@@ -1,3 +1,4 @@
-export type Props = {
+export type MarkdownProps = {
+   className?: string | null
    content: string
 }

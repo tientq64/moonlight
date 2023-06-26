@@ -1,6 +1,8 @@
 @import "bootstrap";
 
 .markdown {
+   @extend .text-break;
+
    img {
       @extend .img-thumbnail;
    }

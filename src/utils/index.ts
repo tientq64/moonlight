@@ -30,3 +30,4 @@ export * from "./hooks/useLogout"
 
 export * from "./others/markdownToHtml"
 export * from "./others/truncateString"
+export * from "./others/upperFirst"

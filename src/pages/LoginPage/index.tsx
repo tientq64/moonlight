@@ -1,24 +1,32 @@
-import { Field, Formik, Form as FormikForm, FormikHelpers } from "formik"
-import { Button, Container, Form } from "react-bootstrap"
+import { Form, Formik, FormikHelpers } from "formik"
+import { Button, Container, FormControl, FormGroup, FormLabel, InputGroup } from "react-bootstrap"
 import { useDispatch } from "react-redux"
 import { Link, useNavigate } from "react-router-dom"
+import { FormControlError } from "../../components"
 import { setUser } from "../../store/reducers/user"
 import { postUsersLogin } from "../../utils"
 import { validationSchema } from "./validationSchema"
 
-export function LoginPage() {
-   type Values = {
-      email: string
-      password: string
-      "email or password"?: string
-   }
+interface Values {
+   email: string
+   password: string
+}
 
+interface Errors {
+   "email or password": string
+}
+
+export function LoginPage() {
    const dispatch = useDispatch()
    const navigate = useNavigate()
 
    const initialValues: Values = {
       email: "",
       password: ""
+   }
+
+   const initialErrors: Errors = {
+      "email or password": ""
    }
 
    const onSubmitLoginForm = (values: Values, actions: FormikHelpers<Values>) => {
@@ -43,7 +51,7 @@ export function LoginPage() {
 
    return (
       <Container>
-         <div className="row py-4">
+         <div className="row py-5">
             <div className="col-md-6 offset-md-3">
                <div className="fs-1 text-center">Sign in</div>
 
@@ -53,41 +61,40 @@ export function LoginPage() {
 
                <Formik
                   initialValues={initialValues}
+                  initialErrors={initialErrors}
                   validationSchema={validationSchema}
                   onSubmit={onSubmitLoginForm}
                >
-                  {({ errors, isSubmitting }) => (
-                     <FormikForm>
-                        <div className="mt-3">
-                           <Field
-                              as={Form.Control}
-                              name="email"
+                  {({ errors, isSubmitting, getFieldProps }) => (
+                     <Form>
+                        <FormGroup className="mt-3">
+                           <div className="fw-semibold">Email</div>
+                           <FormControl
+                              {...getFieldProps("email")}
                               type="email"
                               disabled={isSubmitting}
-                              placeholder="Email"
                            />
-                        </div>
+                           <FormControlError name="email" />
+                        </FormGroup>
 
-                        <div className="mt-3">
-                           <Field
-                              as={Form.Control}
-                              name="password"
+                        <FormGroup className="mt-3">
+                           <div className="fw-semibold">Password</div>
+                           <FormControl
+                              {...getFieldProps("password")}
                               type="password"
                               disabled={isSubmitting}
-                              placeholder="Password"
                            />
-                        </div>
+                           <FormControlError name="password" />
+                        </FormGroup>
 
-                        {errors["email or password"] && (
-                           <Form.Text className="text-danger">{errors["email or password"]}</Form.Text>
-                        )}
+                        <FormControlError name="['email or password']" />
 
-                        <div className="d-grid mt-3">
+                        <div className="d-grid mt-4">
                            <Button type="submit" disabled={isSubmitting}>
                               Sign in
                            </Button>
                         </div>
-                     </FormikForm>
+                     </Form>
                   )}
                </Formik>
             </div>

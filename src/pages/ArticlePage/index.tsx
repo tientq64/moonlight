@@ -1,13 +1,12 @@
 import dayjs from "dayjs"
 import { FormikProvider, useFormik } from "formik"
-import { useEffect, useMemo, useState } from "react"
-import { Button, Card, Col, Container, Form, FormControl, ListGroup, Row } from "react-bootstrap"
+import { KeyboardEvent, useEffect, useMemo, useState } from "react"
+import { Button, Card, Col, Container, Form, FormControl, Row, Spinner } from "react-bootstrap"
 import { Link, useParams } from "react-router-dom"
+import { Markdown } from "../../components"
 import { IArticle, IArticleComment } from "../../types"
-import { deleteArticlesSlugCommentsId, getArticlesSlug, getArticlesSlugComments, markdownToHtml, postArticlesSlugComments, truncateString, useUser } from "../../utils"
+import { deleteArticlesSlugCommentsId, getArticlesSlug, getArticlesSlugComments, postArticlesSlugComments, truncateString, useUser } from "../../utils"
 import { commentSchema } from "./commentSchema"
-import { FormControlError, Markdown } from "../../components"
-import classNames from "classnames"
 
 type Params = {
    slug?: string
@@ -36,13 +35,14 @@ export function ArticlePage() {
       },
 
       validationSchema: commentSchema,
+      validateOnMount: true,
 
       onSubmit(values, actions) {
          if (!slug) return
 
          postArticlesSlugComments(slug, {
             comment: {
-               body: values.body
+               body: values.body.trim()
             }
          })
             .then((response) => {
@@ -55,6 +55,14 @@ export function ArticlePage() {
             })
       }
    })
+
+   const handleKeyDownCommentBody = (event: KeyboardEvent): void => {
+      if (event.repeat) return
+
+      if (event.shiftKey && event.key === "Enter") {
+         commentFormik.submitForm()
+      }
+   }
 
    const handleClickDeleteComment = (comment: IArticleComment): void => {
       if (!slug) return
@@ -97,7 +105,7 @@ export function ArticlePage() {
             <>
                <div className="py-4 bg-dark text-white">
                   <Container>
-                     <h1 className="word-break">
+                     <h1 className="text-break">
                         {truncateString(article.title, 120)}
                      </h1>
 
@@ -181,6 +189,7 @@ export function ArticlePage() {
                                     rows={4}
                                     disabled={commentFormik.isSubmitting}
                                     placeholder="Write a comment..."
+                                    onKeyDown={handleKeyDownCommentBody}
                                  />
                               </div>
 
@@ -251,7 +260,7 @@ export function ArticlePage() {
 
          {!article && (
             <div className="text-center mt-5">
-               <i className="fas fa-spinner fa-spin fs-2" />
+               <Spinner />
             </div>
          )}
       </div>

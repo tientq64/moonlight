@@ -50,7 +50,7 @@ export const Pagination2 = ({
       >
          <Pagination.Item
             className="d-none d-lg-block"
-            disabled={current === 0}
+            disabled={!totalPage || current === 0}
             onClick={handleClickPage.bind(null, current - 1)}
          > Previous
          </Pagination.Item>
@@ -69,7 +69,7 @@ export const Pagination2 = ({
 
          <Pagination.Item
             className="d-none d-lg-block"
-            disabled={current === totalPage - 1}
+            disabled={!totalPage || current === totalPage - 1}
             onClick={handleClickPage.bind(null, current + 1)}
          > Next
          </Pagination.Item>

@@ -53,7 +53,7 @@ export function RegisterPage() {
 
    return (
       <Container>
-         <div className="row py-4">
+         <div className="row py-5">
             <div className="col-md-6 offset-md-3">
                <div className="fs-1 text-center">Sign up</div>
 

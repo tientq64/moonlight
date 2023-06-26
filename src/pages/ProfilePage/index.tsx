@@ -1,11 +1,18 @@
+import classNames from "classnames"
 import { useEffect, useMemo, useState } from "react"
-import { Button, Col, Container, Nav, Row, Tab } from "react-bootstrap"
+import { Button, Col, Container, Nav, Row, Spinner, Tab } from "react-bootstrap"
 import { useSelector } from "react-redux"
 import { Link, useNavigate, useParams } from "react-router-dom"
 import { Article, Pagination2 } from "../../components"
 import { RootState } from "../../store"
 import { IArticle, IProfile, IUser } from "../../types"
-import { GetArticlesParams, deleteProfilesUsernameFollow, getArticles, getProfilesUsername, postProfilesUsernameFollow } from "../../utils"
+import {
+   GetArticlesParams,
+   deleteProfilesUsernameFollow,
+   getArticles,
+   getProfilesUsername,
+   postProfilesUsernameFollow
+} from "../../utils"
 
 type Params = {
    username: string
@@ -24,7 +31,7 @@ export function ProfilePage() {
 
    const [profile, setProfile] = useState<IProfile | IUser | null>()
    const [profileFollowing, setProfileFollowing] = useState<boolean>(false)
-   const [following, setFollowing] = useState<boolean>(false)
+   const [isFollowing, setIsFollowing] = useState<boolean>(false)
 
    const [activedTab, setActivedTab] = useState<Tabs>(Tabs.MyArticles)
 
@@ -39,28 +46,31 @@ export function ProfilePage() {
    }, [username, user])
 
    const handleClickFollowProfile = () => {
-      if (!profile) {
-         return
-      }
+      if (!profile) return
+
       if (!user) {
          navigate("/login")
          return
       }
-      const profile2 = profile as IProfile
-      const prevFollowing = profileFollowing
-      const funcApi = profile2.following ? deleteProfilesUsernameFollow : postProfilesUsernameFollow
-      setProfileFollowing(!prevFollowing)
-      setFollowing(true)
-      funcApi(profile2.username)
+      const username: string = profile.username
+      const prevFrofileFollowing: boolean = profileFollowing
+      const funcApi = profileFollowing
+         ? deleteProfilesUsernameFollow
+         : postProfilesUsernameFollow
+
+      setIsFollowing(true)
+      setProfileFollowing(!prevFrofileFollowing)
+
+      funcApi(username)
          .then((response) => {
             const profile3: IProfile = response.data.profile
             setProfileFollowing(profile3.following)
          })
          .catch(() => {
-            setProfileFollowing(prevFollowing)
+            setProfileFollowing(prevFrofileFollowing)
          })
          .finally(() => {
-            setFollowing(false)
+            setIsFollowing(false)
          })
    }
 
@@ -136,11 +146,19 @@ export function ProfilePage() {
                         <Col md="auto" className="text-center">
                            {!isMe && (
                               <Button
-                                 disabled={following}
+                                 disabled={isFollowing}
                                  variant={profileFollowing ? "outline-primary" : "primary"}
                                  onClick={handleClickFollowProfile}
                               >
-                                 <i className="fas fa-plus me-2" />
+                                 {!isFollowing && (
+                                    <i className={classNames(
+                                       "fas me-2",
+                                       profileFollowing ? "fa-minus" : "fa-plus")
+                                    } />
+                                 )}
+                                 {isFollowing && (
+                                    <Spinner className="me-2" size="sm" />
+                                 )}
                                  {profileFollowing ? "Unfollow" : "Follow"}
                               </Button>
                            )}
@@ -185,7 +203,7 @@ export function ProfilePage() {
                               <Tab.Content>
                                  {loadingArticles && (
                                     <div className="text-center mt-4">
-                                       <i className="fas fa-spinner fa-spin fs-2" />
+                                       <Spinner />
                                     </div>
                                  )}
 
@@ -212,7 +230,7 @@ export function ProfilePage() {
 
          {!profile && (
             <div className="text-center mt-5">
-               <i className="fas fa-spinner fa-spin fs-2" />
+               <Spinner />
             </div>
          )}
       </div>

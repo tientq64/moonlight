@@ -1,7 +1,7 @@
 import classNames from "classnames"
 import dayjs from "dayjs"
 import { MouseEvent, useEffect, useState } from "react"
-import { Button, Card } from "react-bootstrap"
+import { Button, Card, Spinner } from "react-bootstrap"
 import { useSelector } from "react-redux"
 import { Link, useNavigate } from "react-router-dom"
 import { RootState } from "../../store"
@@ -25,7 +25,7 @@ export const Article = ({ article }: Props) => {
          navigate("/login")
          return
       }
-      const api = favorited ? deleteArticlesFavorite : postArticlesFavorite
+      const funcApi = favorited ? deleteArticlesFavorite : postArticlesFavorite
       const prevFavorited = favorited
       const prevFavoritesCount = favoritesCount
 
@@ -33,7 +33,7 @@ export const Article = ({ article }: Props) => {
       setFavoritesCount(favoritesCount + (favorited ? -1 : 1))
       setFavoriting(true)
 
-      api(article.slug)
+      funcApi(article.slug)
          .then((response) => {
             setFavorited(response.data.article.favorited)
             setFavoritesCount(response.data.article.favoritesCount)
@@ -76,11 +76,13 @@ export const Article = ({ article }: Props) => {
                   disabled={favoriting}
                   onClick={handleClickFavoriteButton}
                >
-                  <i className={classNames(
-                     "fas me-2",
-                     favoriting ? "fa-spinner fa-spin" : "fa-heart"
-                  )} />
-                  {favoritesCount}
+                  {favoriting
+                     ? <Spinner />
+                     : <i className="fas fa-heart" />
+                  }
+                  <span className="ms-2">
+                     {favoritesCount}
+                  </span>
                </Button>
             </div>
          </Card.Header>
@@ -90,10 +92,10 @@ export const Article = ({ article }: Props) => {
                className="d-block text-decoration-none"
                to={`/article/${article.slug}`}
             >
-               <div className="fs-4 text-black word-break">
+               <div className="fs-4 text-black text-break">
                   {truncateString(article.title, 120)}
                </div>
-               <div className="text-secondary word-break">
+               <div className="text-secondary text-break">
                   {truncateString(article.description, 240)}
                </div>
                <div className="d-flex mt-3 justify-content-between">
