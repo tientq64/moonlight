@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react"
 import { Button, Col, Container, Nav, Row, Spinner, Tab } from "react-bootstrap"
 import { useSelector } from "react-redux"
 import { Link, useNavigate, useParams } from "react-router-dom"
-import { Article, Pagination2 } from "../../components"
+import { Article, EmptyState, Pagination2 } from "../../components"
 import { RootState } from "../../store"
 import { IArticle, IProfile, IUser } from "../../types"
 import {
@@ -175,7 +175,7 @@ export function ProfilePage() {
                </div>
 
                <Container>
-                  <div className="py-4">
+                  <div className="py-5">
                      <Tab.Container
                         activeKey={activedTab}
                         onSelect={(activeKey: any) => setActivedTab(activeKey)}
@@ -211,12 +211,19 @@ export function ProfilePage() {
                                     <Article key={index} article={article} />
                                  ))}
 
-                                 {!loadingArticles && (
+                                 {!loadingArticles && articles.length > 0 && (
                                     <Pagination2
                                        className="mt-5"
                                        current={page}
                                        total={articlesCount}
                                        onChange={(page) => setPage(page)}
+                                    />
+                                 )}
+
+                                 {!loadingArticles && articles.length === 0 && (
+                                    <EmptyState
+                                       icon="search"
+                                       header="No articles found"
                                     />
                                  )}
                               </Tab.Content>

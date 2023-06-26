@@ -1,5 +1,5 @@
-import { Form, Formik, FormikHelpers } from "formik"
-import { Button, Container, FormControl, FormGroup, FormLabel, InputGroup } from "react-bootstrap"
+import { Formik, FormikHelpers } from "formik"
+import { Button, Container, Form, FormControl, FormGroup } from "react-bootstrap"
 import { useDispatch } from "react-redux"
 import { Link, useNavigate } from "react-router-dom"
 import { FormControlError } from "../../components"
@@ -12,10 +12,6 @@ interface Values {
    password: string
 }
 
-interface Errors {
-   "email or password": string
-}
-
 export function LoginPage() {
    const dispatch = useDispatch()
    const navigate = useNavigate()
@@ -23,10 +19,6 @@ export function LoginPage() {
    const initialValues: Values = {
       email: "",
       password: ""
-   }
-
-   const initialErrors: Errors = {
-      "email or password": ""
    }
 
    const onSubmitLoginForm = (values: Values, actions: FormikHelpers<Values>) => {
@@ -41,7 +33,7 @@ export function LoginPage() {
             const { errors } = reason.response.data
             for (const field in errors) {
                const messages = errors[field]
-               actions.setFieldError(field, `${field} ${messages[0]}`)
+               alert(`${field} ${messages[0]}`)
             }
          })
          .finally(() => {
@@ -61,12 +53,11 @@ export function LoginPage() {
 
                <Formik
                   initialValues={initialValues}
-                  initialErrors={initialErrors}
                   validationSchema={validationSchema}
                   onSubmit={onSubmitLoginForm}
                >
-                  {({ errors, isSubmitting, getFieldProps }) => (
-                     <Form>
+                  {({ errors, isSubmitting, handleSubmit, getFieldProps }) => (
+                     <Form onSubmit={handleSubmit}>
                         <FormGroup className="mt-3">
                            <div className="fw-semibold">Email</div>
                            <FormControl
@@ -86,8 +77,6 @@ export function LoginPage() {
                            />
                            <FormControlError name="password" />
                         </FormGroup>
-
-                        <FormControlError name="['email or password']" />
 
                         <div className="d-grid mt-4">
                            <Button type="submit" disabled={isSubmitting}>

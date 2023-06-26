@@ -1,44 +1,39 @@
-import { AxiosResponse } from "axios"
-import { Field, Formik, Form as FormikForm, FormikHelpers } from "formik"
-import { Button, Container, Form } from "react-bootstrap"
-import { useDispatch, useSelector } from "react-redux"
+import { Field, Formik, FormikHelpers } from "formik"
+import { Button, Container, Form, FormControl, FormGroup, FormText } from "react-bootstrap"
 import { Link, useNavigate } from "react-router-dom"
-import { RootState } from "../../store"
-import { setUser } from "../../store/reducers/user"
+import { FormControlError } from "../../components"
 import { IUser } from "../../types"
-import { postUsers, postUsersLogin } from "../../utils"
+import { postUsers, postUsersLogin, useUser } from "../../utils"
 import { validationSchema } from "./validationSchema"
 
-export function RegisterPage() {
-   interface IValues {
-      username: string
-      email: string
-      password: string
-   }
+interface Values {
+   username: string
+   email: string
+   password: string
+}
 
-   const user: IUser | null = useSelector((state: RootState) => state.user.user)
-   const dispatch = useDispatch()
+export function RegisterPage() {
+   const [user, setUser] = useUser()
    const navigate = useNavigate()
 
-   const initialValues: IValues = {
+   const initialValues: Values = {
       username: "",
       email: "",
       password: ""
    }
 
-   const onSubmitRegisterForm = (values: IValues, actions: FormikHelpers<IValues>) => {
+   const onSubmitRegisterForm = (values: Values, actions: FormikHelpers<Values>) => {
       postUsers({ user: values })
-         .then((response: AxiosResponse<{ user: any}>) => {
-            const { user } = response.data
+         .then((response) => {
             postUsersLogin({
                user: {
                   email: values.email,
                   password: values.password
                }
             }).then((response) => {
-
-               dispatch(setUser(user))
-               localStorage.setItem("userToken", user.token)
+               const newUser: IUser = response.data.user
+               setUser(newUser)
+               localStorage.setItem("userToken", newUser.token)
                navigate("/")
             })
          })
@@ -66,33 +61,41 @@ export function RegisterPage() {
                   validationSchema={validationSchema}
                   onSubmit={onSubmitRegisterForm}
                >
-                  {({ values, errors }) => (
-                     <FormikForm>
-                        <div className="mt-3">
-                           <Field as={Form.Control} name="username" placeholder="Username" />
-                           {errors.username && (
-                              <Form.Text className="text-danger">{errors.username}</Form.Text>
-                           )}
-                        </div>
+                  {({ errors, getFieldProps, handleSubmit, isSubmitting }) => (
+                     <Form onSubmit={handleSubmit}>
+                        <FormGroup className="mt-3">
+                           <div className="fw-semibold">Username</div>
+                           <FormControl
+                              {...getFieldProps("username")}
+                              disabled={isSubmitting}
+                           />
+                           <FormControlError name="username" />
+                        </FormGroup>
 
-                        <div className="mt-3">
-                           <Field as={Form.Control} name="email" type="email" placeholder="Email" />
-                           {errors.email && (
-                              <Form.Text className="text-danger">{errors.email}</Form.Text>
-                           )}
-                        </div>
+                        <FormGroup className="mt-3">
+                           <div className="fw-semibold">Email</div>
+                           <FormControl
+                              {...getFieldProps("email")}
+                              type="email"
+                              disabled={isSubmitting}
+                           />
+                           <FormControlError name="email" />
+                        </FormGroup>
 
-                        <div className="mt-3">
-                           <Field as={Form.Control} name="password" type="password" placeholder="Password" />
-                           {errors.password && (
-                              <Form.Text className="text-danger">{errors.password}</Form.Text>
-                           )}
-                        </div>
+                        <FormGroup className="mt-3">
+                           <div className="fw-semibold">Password</div>
+                           <FormControl
+                              {...getFieldProps("password")}
+                              type="password"
+                              disabled={isSubmitting}
+                           />
+                           <FormControlError name="password" />
+                        </FormGroup>
 
-                        <div className="d-grid mt-3">
+                        <div className="d-grid mt-4">
                            <Button type="submit">Sign up</Button>
                         </div>
-                     </FormikForm>
+                     </Form>
                   )}
                </Formik>
             </div>

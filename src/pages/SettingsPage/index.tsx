@@ -1,15 +1,12 @@
 import { AxiosResponse } from "axios"
-import { Form, Formik, FormikHelpers, FormikProps } from "formik"
+import { Formik, FormikHelpers, FormikProps } from "formik"
 import { ChangeEvent } from "react"
-import { Button, Col, Container, FormControl, FormGroup, Row } from "react-bootstrap"
-import { useDispatch, useSelector } from "react-redux"
+import { Button, Col, Container, Form, FormControl, FormGroup, Row } from "react-bootstrap"
 import { Navigate } from "react-router-dom"
-import { RootState } from "../../store"
-import { setUser } from "../../store/reducers/user"
+import { FormControlError } from "../../components"
 import { IUser } from "../../types"
 import { putUser, useUser } from "../../utils"
 import { validationSchema } from "./validationSchema"
-import { FormControlError } from "../../components"
 
 type Values = {
    image: string
@@ -20,8 +17,7 @@ type Values = {
 }
 
 export function SettingsPage() {
-   const [user] = useUser()
-   const dispatch = useDispatch()
+   const [user, setUser] = useUser()
 
    if (!user) {
       return <Navigate to="/login" replace />
@@ -30,7 +26,7 @@ export function SettingsPage() {
    const initialValues: Values = {
       image: user.image,
       username: user.username,
-      bio: user.bio,
+      bio: user.bio ?? "",
       email: user.email,
       password: ""
    }
@@ -43,7 +39,7 @@ export function SettingsPage() {
       putUser({ user: newValues })
          .then((response: AxiosResponse) => {
             const newUser: IUser = response.data.user
-            dispatch(setUser(newUser))
+            setUser(newUser)
             localStorage.setItem("userToken", newUser.token)
             actions.setValues(newValues)
          })
@@ -82,8 +78,8 @@ export function SettingsPage() {
             validationSchema={validationSchema}
             onSubmit={handleSubmit}
          >
-            {({ values, errors, getFieldProps, isSubmitting, setFieldValue }: FormikProps<Values>) => (
-               <Form>
+            {({ values, errors, getFieldProps, isSubmitting, setFieldValue, handleSubmit }: FormikProps<Values>) => (
+               <Form onSubmit={handleSubmit}>
                   <Row className="gap-3">
                      <Col md="auto" className="mt-4 text-center">
                         <label className="cursor-pointer" htmlFor="image">

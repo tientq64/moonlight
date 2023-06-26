@@ -77,7 +77,7 @@ export const Article = ({ article }: Props) => {
                   onClick={handleClickFavoriteButton}
                >
                   {favoriting
-                     ? <Spinner />
+                     ? <Spinner size="sm" />
                      : <i className="fas fa-heart" />
                   }
                   <span className="ms-2">
@@ -110,8 +110,7 @@ export const Article = ({ article }: Props) => {
                            onClick={(event: MouseEvent) => {
                               event.preventDefault()
                            }}
-                        >
-                           {truncateString(tag, 20)}
+                        > {truncateString(tag, 20)}
                         </Button>
                      ))}
                   </div>

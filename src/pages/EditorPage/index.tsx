@@ -1,13 +1,13 @@
 import { AxiosResponse } from "axios"
-import classNames from "classnames"
 import { FormikProvider, useFormik } from "formik"
 import { useEffect, useState } from "react"
-import { Button, Col, Container, Form, FormControl, FormGroup, Row } from "react-bootstrap"
-import { Navigate, useNavigate, useParams } from "react-router-dom"
+import { Button, Container, Form, FormControl, FormGroup } from "react-bootstrap"
+import { useNavigate, useParams } from "react-router-dom"
 import { TagsInput } from "react-tag-input-component"
-import { FormControlError, Markdown } from "../../components"
+import { FormControlError } from "../../components"
 import { IArticle, IArticleEdit } from "../../types"
 import { getArticlesSlug, postArticles, putArticlesSlug, useUser } from "../../utils"
+import "./styles.scss"
 import { validationSchema } from "./validationSchema"
 
 type Params = {
@@ -27,11 +27,6 @@ export function EditorPage() {
    }
 
    const [article, setArticle] = useState<ArticleValues | null>()
-   const [isPreviewBody, setIsPreviewBody] = useState<boolean>(false)
-
-   const handleClickTogglePreviewBody = () => {
-      setIsPreviewBody(!isPreviewBody)
-   }
 
    const formik = useFormik<ArticleValues>({
       initialValues: {
@@ -56,6 +51,14 @@ export function EditorPage() {
             })
       }
    })
+
+   const configJoditEditorBody = {
+      editHTMLDocumentMode: false
+   }
+
+   const handleBlurJoditEditorBody = (value: string): void => {
+      formik.setFieldValue("body", value)
+   }
 
    const handleChangeTagList = (tagList: string[]): void => {
       formik.setFieldValue("tagList", tagList)
@@ -107,39 +110,7 @@ export function EditorPage() {
                   </FormGroup>
 
                   <FormGroup className="mt-3">
-                     <Row className="fw-semibold">
-                        <Col>Body</Col>
-                        <Col className="d-none d-lg-block">
-                           <Button
-                              className="float-end text-decoration-none py-0"
-                              size="sm"
-                              variant="link"
-                              onClick={handleClickTogglePreviewBody}
-                           > Toggle preview
-                           </Button>
-                        </Col>
-                     </Row>
-
-                     <Row className="flex-nowrap gap-4 g-0">
-                        <Col>
-                           <FormControl
-                              {...formik.getFieldProps("body")}
-                              as="textarea"
-                              className={classNames({
-                                 "h-100": isPreviewBody
-                              })}
-                              rows={16}
-                              disabled={formik.isSubmitting}
-                              placeholder="Write your article (in Markdown)"
-                           />
-                        </Col>
-
-                        {isPreviewBody && (
-                           <Col className="d-none d-lg-block">
-                              <Markdown content={formik.values.body} />
-                           </Col>
-                        )}
-                     </Row>
+                     <div className="fw-semibold">Body</div>
                      <FormControlError name="body" />
                   </FormGroup>
 

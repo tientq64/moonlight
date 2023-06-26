@@ -1,22 +1,14 @@
-import { FormikContextType, connect, getIn } from "formik"
+import { ErrorMessage } from "formik"
 import { FormControl } from "react-bootstrap"
 
 type Props = {
-   name: string,
-   formik?: FormikContextType<{}>
+   name: string
 }
 
-export const FormControlError = connect(({ name, formik }: Props) => {
-   if (!formik) return null
-
-   const error = getIn(formik.errors, name)
-   const touched = getIn(formik.touched, name) || !Object.hasOwn(formik.values, name)
-
+export const FormControlError = ({ name }: Props) => {
    return (
-      touched && error ? (
-         <FormControl.Feedback className="d-block" type="invalid">
-            {error}
-         </FormControl.Feedback>
-      ) : null
+      <FormControl.Feedback className="d-block" type="invalid">
+         <ErrorMessage name={name} />
+      </FormControl.Feedback>
    )
-})
+}
