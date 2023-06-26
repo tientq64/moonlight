@@ -3,6 +3,10 @@
 .markdown {
    @extend .text-break;
 
+   pre {
+      white-space: pre-line;
+   }
+
    img {
       @extend .img-thumbnail;
    }

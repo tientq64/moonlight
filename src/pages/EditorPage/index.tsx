@@ -1,14 +1,15 @@
 import { AxiosResponse } from "axios"
+import classNames from "classnames"
 import { FormikProvider, useFormik } from "formik"
-import { useEffect, useState } from "react"
-import { Button, Container, Form, FormControl, FormGroup } from "react-bootstrap"
+import { useEffect, useRef, useState } from "react"
+import { Button, Col, Container, Form, FormControl, FormGroup, Row, Spinner } from "react-bootstrap"
 import { useNavigate, useParams } from "react-router-dom"
 import { TagsInput } from "react-tag-input-component"
-import { FormControlError } from "../../components"
+import { CodeMirrorEditor, FormControlError, Markdown } from "../../components"
 import { IArticle, IArticleEdit } from "../../types"
 import { getArticlesSlug, postArticles, putArticlesSlug, useUser } from "../../utils"
-import "./styles.scss"
 import { validationSchema } from "./validationSchema"
+import styles from "./styles.module.scss"
 
 type Params = {
    slug?: string
@@ -23,10 +24,15 @@ export function EditorPage() {
 
    if (!user) {
       navigate("/login")
-      console.log(navigate)
    }
 
-   const [article, setArticle] = useState<ArticleValues | null>()
+   const [article, setArticle] = useState<ArticleValues | null>(null)
+   const [isLoadingArticle, setIsLoadingArticle] = useState<boolean>(false)
+   const [isPreviewBody, setIsPreviewBody] = useState<boolean>(true)
+
+   const handleClickTogglePreviewBody = () => {
+      setIsPreviewBody(!isPreviewBody)
+   }
 
    const formik = useFormik<ArticleValues>({
       initialValues: {
@@ -52,11 +58,7 @@ export function EditorPage() {
       }
    })
 
-   const configJoditEditorBody = {
-      editHTMLDocumentMode: false
-   }
-
-   const handleBlurJoditEditorBody = (value: string): void => {
+   const handleChangeCodeMirrorEditorBody = (value: string): void => {
       formik.setFieldValue("body", value)
    }
 
@@ -66,11 +68,15 @@ export function EditorPage() {
 
    useEffect(() => {
       if (slug) {
+         setIsLoadingArticle(true)
          getArticlesSlug(slug)
             .then((response) => {
                const article2: IArticle = response.data.article
                setArticle(article2)
                formik.setValues(article2)
+            })
+            .finally(() => {
+               setIsLoadingArticle(false)
             })
       } else {
          const newArticle: IArticleEdit = {
@@ -85,8 +91,8 @@ export function EditorPage() {
 
    return (
       <Container className="py-4">
-         <FormikProvider value={formik}>
-            {article && (
+         {article && (
+            <FormikProvider value={formik}>
                <Form onSubmit={formik.handleSubmit}>
                   <FormGroup className="mt-3">
                      <div className="fw-semibold fs-4">Title</div>
@@ -110,7 +116,35 @@ export function EditorPage() {
                   </FormGroup>
 
                   <FormGroup className="mt-3">
-                     <div className="fw-semibold">Body</div>
+                     <Row className="fw-semibold">
+                        <Col>Body</Col>
+                        <Col className="d-none d-lg-block">
+                           <Button
+                              className="float-end text-decoration-none py-0"
+                              size="sm"
+                              variant="link"
+                              onClick={handleClickTogglePreviewBody}
+                           > Toggle preview
+                           </Button>
+                        </Col>
+                     </Row>
+
+                     <Row className="flex-nowrap gap-4 g-0">
+                        <Col>
+                           <CodeMirrorEditor
+                              disabled={formik.isSubmitting}
+                              placeholder="Write your article (in Markdown)"
+                              value={formik.values.body}
+                              onChange={handleChangeCodeMirrorEditorBody}
+                           />
+                        </Col>
+
+                        {isPreviewBody && (
+                           <Col className="max-h-100vh d-none d-lg-block overflow-auto text-break">
+                              <Markdown content={formik.values.body} />
+                           </Col>
+                        )}
+                     </Row>
                      <FormControlError name="body" />
                   </FormGroup>
 
@@ -140,8 +174,14 @@ export function EditorPage() {
                      </div>
                   </FormGroup>
                </Form>
-            )}
-         </FormikProvider>
+            </FormikProvider>
+         )}
+
+         {!article && (
+            <div className="mt-5 text-center">
+               <Spinner />
+            </div>
+         )}
       </Container>
    )
 }

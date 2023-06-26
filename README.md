@@ -1,7 +1,8 @@
 # Conduit
 
 ## Todos
-- i18n
+- [ ] i18n
+- [ ] darkmode
 
 ## References
 - http://localhost:3000/
