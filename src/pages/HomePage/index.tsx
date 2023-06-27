@@ -83,7 +83,7 @@ export function HomePage() {
             <h1 className="fs-1 fw-bold">
                Mo
                <img className={styles.bannerLogo} src={logo} alt="Logo" />
-               n
+               nlight
             </h1>
             <div className="lead">
                A place to share your life (at the end of) every day.

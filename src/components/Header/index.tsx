@@ -17,7 +17,7 @@ export const Header = () => {
          <Container>
             <Navbar.Brand as={Link} className="fw-semibold d-flex" to="/">
                {/* <img className={styles.logo} src={logo} alt="Logo" /> */}
-               Moon
+               Moonlight
             </Navbar.Brand>
 
             <Navbar.Collapse>

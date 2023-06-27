@@ -29,7 +29,7 @@ export function EditorPage() {
    const navigate = useNavigate()
 
    const [article, setArticle] = useState<EditArticle | null>(null)
-   const [isLoadingArticle, setIsLoadingArticle] = useState<boolean>(false)
+   const [, setIsLoadingArticle] = useState<boolean>(false)
    const [isPreviewBody, setIsPreviewBody] = useState<boolean>(true)
    const bodyTextAreaRef = useRef(null)
    const bodyPreviewRef = useRef(null)
