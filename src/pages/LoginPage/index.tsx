@@ -2,20 +2,18 @@ import { Formik, FormikHelpers } from "formik"
 import { Button, Container, Form, FormControl, FormGroup, Spinner } from "react-bootstrap"
 import { Link, Navigate, useNavigate } from "react-router-dom"
 import { toast } from "react-toastify"
-import { postUsersLogin } from "../../apis"
+import { LoginUser, useLogin } from "../../apis"
 import { FormControlError } from "../../components"
-import { validationSchema } from "./validationSchema"
 import { useUser } from "../../hooks"
-import { IUser } from "../../types"
+import { validationSchema } from "./validationSchema"
 
-interface Values {
-   email: string
-   password: string
-}
+interface Values extends LoginUser {}
 
 export function LoginPage() {
    const [user, setUser] = useUser()
    const navigate = useNavigate()
+
+   const login = useLogin()
 
    const initialValues: Values = {
       email: "",
@@ -23,10 +21,10 @@ export function LoginPage() {
    }
 
    const onSubmitLoginForm = (values: Values, actions: FormikHelpers<Values>) => {
-      postUsersLogin({ user: values })
+      login({ user: values })
          .then((response) => {
-            const newUser: IUser = response.data.user
-            setUser(newUser)
+            setUser(response.data.user)
+            navigate(-1)
          })
          .catch((reason) => {
             const { errors } = reason.response.data

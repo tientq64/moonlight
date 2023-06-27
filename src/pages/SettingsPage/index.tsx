@@ -3,22 +3,17 @@ import { Formik, FormikHelpers, FormikProps } from "formik"
 import { ChangeEvent } from "react"
 import { Button, Col, Container, Form, FormControl, FormGroup, Row } from "react-bootstrap"
 import { Navigate } from "react-router-dom"
+import { toast } from "react-toastify"
+import { IUser, UpdateUser, useUpdateCurrentUser } from "../../apis"
 import { FormControlError } from "../../components"
-import { IUser } from "../../types"
-import { validationSchema } from "./validationSchema"
-import { putUser } from "../../apis"
 import { useUser } from "../../hooks"
+import { validationSchema } from "./validationSchema"
 
-type Values = {
-   image: string
-   username: string
-   bio: string
-   email: string
-   password?: string
-}
+type Values = UpdateUser
 
 export function SettingsPage() {
    const [user, setUser] = useUser()
+   const updateCurrentUser = useUpdateCurrentUser()
 
    if (!user) {
       return <Navigate to="/login" replace />
@@ -33,19 +28,21 @@ export function SettingsPage() {
    }
 
    const handleSubmit = (values: Values, actions: FormikHelpers<Values>) => {
-      const newValues: Values = { ...values }
-      if (!newValues.password) {
-         delete newValues.password
+      const updateUser: UpdateUser = { ...values }
+
+      if (!updateUser.password) {
+         delete updateUser.password
       }
-      putUser({ user: newValues })
+
+      updateCurrentUser({ user: updateUser })
          .then((response: AxiosResponse) => {
             const newUser: IUser = response.data.user
             setUser(newUser)
-            localStorage.setItem("userToken", newUser.token)
-            actions.setValues(newValues)
+            actions.setFieldValue("password", "")
+            toast("Update profile information successfully", { type: "success" })
          })
          .catch((reason) => {
-            // console.log(reason)
+            toast(reason.response.data, { type: "error" })
          })
          .finally(() => {
             actions.setSubmitting(false)
@@ -55,10 +52,13 @@ export function SettingsPage() {
    const handleChangeImage = (setFieldValue: any, event: ChangeEvent) => {
       const target = event.target as HTMLInputElement
       const files: FileList | null = target.files
+
       if (files?.length) {
          const file = files[0]
+
          if (file.type.startsWith("image/")) {
             const reader = new FileReader()
+
             reader.addEventListener("load", (event) => {
                const result = event.target?.result
                if (result) {
@@ -79,7 +79,7 @@ export function SettingsPage() {
             validationSchema={validationSchema}
             onSubmit={handleSubmit}
          >
-            {({ values, errors, getFieldProps, isSubmitting, setFieldValue, handleSubmit }: FormikProps<Values>) => (
+            {({ values, getFieldProps, isSubmitting, setFieldValue, handleSubmit }: FormikProps<Values>) => (
                <Form onSubmit={handleSubmit}>
                   <Row className="gap-3">
                      <Col md="auto" className="mt-4 text-center">

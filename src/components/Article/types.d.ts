@@ -1,4 +1,4 @@
-import { IArticle } from "../../types"
+import { IArticle } from "../../apis"
 
 export interface ArticleProps {
    article: IArticle

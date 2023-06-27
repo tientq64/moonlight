@@ -1,48 +1,53 @@
 import dayjs from "dayjs"
 import { MouseEvent, useEffect, useState } from "react"
 import { Button, Card, Spinner } from "react-bootstrap"
-import { useSelector } from "react-redux"
 import { Link, useNavigate } from "react-router-dom"
-import { RootState } from "../../store"
-import { ArticleProps } from "./types"
-import { deleteArticlesFavorite, postArticlesFavorite } from "../../apis"
+import { useCreateArticleFavorite, useDeleteArticleFavorite } from "../../apis"
+import { useUser } from "../../hooks"
 import { truncateString } from "../../utils"
+import { ArticleProps } from "./types"
+import { toast } from "react-toastify"
 
 export const Article = ({
    article,
    onClickTag
 }: ArticleProps) => {
-   const user = useSelector((state: RootState) => state.user.user)
+   const [user] = useUser()
    const navigate = useNavigate()
 
-   const [favorited, setFavorited] = useState(article.favorited)
-   const [favoritesCount, setFavoritesCount] = useState(article.favoritesCount)
-   const [favoriting, setFavoriting] = useState(false)
+   const [favorited, setFavorited] = useState<boolean>(article.favorited)
+   const [favoritesCount, setFavoritesCount] = useState<number>(article.favoritesCount)
+   const [isFavoriting, setIsFavoriting] = useState<boolean>(false)
+
+   const createArticleFavorite = useCreateArticleFavorite()
+   const deleteArticleFavorite = useDeleteArticleFavorite()
 
    const handleClickFavoriteButton = (): void => {
       if (!user) {
          navigate("/login")
          return
       }
-      const funcApi = favorited ? deleteArticlesFavorite : postArticlesFavorite
+
+      const api = favorited ? deleteArticleFavorite : createArticleFavorite
       const prevFavorited = favorited
       const prevFavoritesCount = favoritesCount
 
       setFavorited(!favorited)
       setFavoritesCount(favoritesCount + (favorited ? -1 : 1))
-      setFavoriting(true)
+      setIsFavoriting(true)
 
-      funcApi(article.slug)
+      api(article.slug)
          .then((response) => {
             setFavorited(response.data.article.favorited)
             setFavoritesCount(response.data.article.favoritesCount)
          })
-         .catch(() => {
+         .catch((reason) => {
             setFavorited(prevFavorited)
             setFavoritesCount(prevFavoritesCount)
+            toast(reason.response.data, { type: "error" })
          })
          .finally(() => {
-            setFavoriting(false)
+            setIsFavoriting(false)
          })
    }
 
@@ -53,6 +58,7 @@ export const Article = ({
 
    useEffect(() => {
       setFavorited(article.favorited)
+      setFavoritesCount(article.favoritesCount)
    }, [article])
 
    return (
@@ -77,10 +83,10 @@ export const Article = ({
                <Button
                   size="sm"
                   variant={favorited ? "primary" : "outline-primary"}
-                  disabled={favoriting}
+                  disabled={isFavoriting}
                   onClick={handleClickFavoriteButton}
                >
-                  {favoriting
+                  {isFavoriting
                      ? <Spinner size="sm" />
                      : <i className="fas fa-heart" />
                   }

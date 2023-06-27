@@ -3,21 +3,18 @@ import { useEffect, useMemo, useState } from "react"
 import { Button, Col, Container, Nav, Row, Spinner, Tab } from "react-bootstrap"
 import { Link, useNavigate, useParams } from "react-router-dom"
 import {
-   GetArticlesParams,
-   deleteProfilesUsernameFollow,
-   getArticles,
-   getProfilesUsername,
-   postProfilesUsernameFollow
+   GetArticlesParams, IArticle, IProfile, IUser, MultipleArticlesResponse, useFollowUserByUsername, useGetArticles, useGetProfileByUsername, useUnfollowUserByUsername,
 } from "../../apis"
 import { Article, EmptyState, Pagination2 } from "../../components"
 import { useUser } from "../../hooks"
-import { IArticle, IProfile, IUser } from "../../types"
 
 type Params = {
    username: string
 }
 
-enum Tabs {
+type ProfileOrUser = IProfile | IUser
+
+enum PageTabs {
    MyArticles = "myArticles",
    FavoritedArticles = "favoritedArticles"
 }
@@ -27,23 +24,30 @@ export function ProfilePage() {
    const navigate = useNavigate()
    const { username } = useParams<Params>()
 
-   const [profile, setProfile] = useState<IProfile | IUser | null>()
+   const [profile, setProfile] = useState<ProfileOrUser | null>()
    const [profileFollowing, setProfileFollowing] = useState<boolean>(false)
    const [isFollowing, setIsFollowing] = useState<boolean>(false)
 
-   const [activedTab, setActivedTab] = useState<Tabs>(Tabs.MyArticles)
+   const [activedTab, setActivedTab] = useState<PageTabs>(PageTabs.MyArticles)
 
    const [articles, setArticles] = useState<IArticle[]>([])
    const [articlesCount, setArticlesCount] = useState<number>(0)
    const [loadingArticles, setLoadingArticles] = useState<boolean>(false)
+
    const [pageSize, setPageSize] = useState<number>(10)
    const [page, setPage] = useState<number>(0)
+
+   const getProfileByUsername = useGetProfileByUsername()
+   const followUserByUsername = useFollowUserByUsername()
+   const unfollowUserByUsername = useUnfollowUserByUsername()
+
+   const getArticles = useGetArticles()
 
    const isMe: boolean = useMemo(() => {
       return user?.username === username
    }, [username, user])
 
-   const handleClickFollowProfile = () => {
+   const handleClickFollowProfile = (): void => {
       if (!profile) return
 
       if (!user) {
@@ -52,17 +56,14 @@ export function ProfilePage() {
       }
       const username: string = profile.username
       const prevFrofileFollowing: boolean = profileFollowing
-      const funcApi = profileFollowing
-         ? deleteProfilesUsernameFollow
-         : postProfilesUsernameFollow
+      const api = profileFollowing ? unfollowUserByUsername : followUserByUsername
 
       setIsFollowing(true)
       setProfileFollowing(!prevFrofileFollowing)
 
-      funcApi(username)
+      api(username)
          .then((response) => {
-            const profile3: IProfile = response.data.profile
-            setProfileFollowing(profile3.following)
+            setProfileFollowing(response.data.profile.following)
          })
          .catch(() => {
             setProfileFollowing(prevFrofileFollowing)
@@ -76,16 +77,18 @@ export function ProfilePage() {
       if (!username) {
          return
       }
+
       setProfile(null)
-      setActivedTab(Tabs.MyArticles)
+      setActivedTab(PageTabs.MyArticles)
+
       if (isMe) {
          setProfile(user)
       } else {
-         getProfilesUsername(username)
+         getProfileByUsername(username)
             .then((response) => {
-               const profile2: IProfile = response.data.profile
-               setProfile(profile2)
-               setProfileFollowing(profile2.following)
+               const dataProfile: IProfile = response.data.profile
+               setProfile(dataProfile)
+               setProfileFollowing(dataProfile.following)
             })
       }
    }, [username, user])
@@ -105,16 +108,17 @@ export function ProfilePage() {
          limit: pageSize,
          offset: page * pageSize
       }
-      if (activedTab === Tabs.MyArticles) {
+      if (activedTab === PageTabs.MyArticles) {
          params.author = profile.username
-      } else if (activedTab === Tabs.FavoritedArticles) {
+      } else if (activedTab === PageTabs.FavoritedArticles) {
          params.favorited = profile.username
       }
 
       getArticles(params)
          .then((response) => {
-            setArticles(response.data.articles)
-            setArticlesCount(response.data.articlesCount)
+            const data: MultipleArticlesResponse = response.data
+            setArticles(data.articles)
+            setArticlesCount(data.articlesCount)
          })
          .finally(() => {
             setLoadingArticles(false)
@@ -141,6 +145,7 @@ export function ProfilePage() {
                               </div>
                            </div>
                         </Col>
+
                         <Col md="auto" className="text-center">
                            {!isMe && (
                               <Button
@@ -182,14 +187,14 @@ export function ProfilePage() {
                            <Col md={4} xl={3}>
                               <Nav className="flex-column sticky-top bg-primary bg-opacity-15 p-3 rounded" variant="pills" style={{ top: 96 }}>
                                  <Nav.Item>
-                                    <Nav.Link eventKey={Tabs.MyArticles}>
+                                    <Nav.Link eventKey={PageTabs.MyArticles}>
                                        <i className="fas fa-user me-2" />
                                        My articles
                                     </Nav.Link>
                                  </Nav.Item>
 
                                  <Nav.Item>
-                                    <Nav.Link eventKey={Tabs.FavoritedArticles}>
+                                    <Nav.Link eventKey={PageTabs.FavoritedArticles}>
                                        <i className="fas fa-heart me-2" />
                                        Favorited articles
                                     </Nav.Link>

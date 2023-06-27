@@ -1,8 +1,8 @@
 import classNames from "classnames"
 import { Button, Container, Dropdown, Nav, Navbar } from "react-bootstrap"
 import { Link, NavLink } from "react-router-dom"
+import { useLogout, useUser } from "../../hooks"
 import styles from "./styles.module.scss"
-import { useUser, useLogout } from "../../hooks"
 
 export const Header = () => {
    const [user] = useUser()
@@ -57,6 +57,13 @@ export const Header = () => {
                               <Dropdown.Item as={NavLink} to="/editor">
                                  <i className="fas fa-edit me-2"></i>
                                  New article
+                              </Dropdown.Item>
+
+                              <Dropdown.Divider />
+
+                              <Dropdown.Item>
+                                 <i className="fas fa-circle-half-stroke me-2"></i>
+                                 Dark mode
                               </Dropdown.Item>
 
                               <Dropdown.Divider />

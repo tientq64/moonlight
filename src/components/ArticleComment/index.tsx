@@ -4,7 +4,7 @@ import { useState } from "react"
 import { Button, Card } from "react-bootstrap"
 import { Link } from "react-router-dom"
 import { toast } from "react-toastify"
-import { deleteArticlesSlugCommentsId } from "../../apis"
+import { useDeleteArticleComment } from "../../apis"
 import { useUser } from "../../hooks"
 import { ArticleCommentProps } from "./types"
 
@@ -16,14 +16,16 @@ export const ArticleComment = ({
    const [user] = useUser()
    const [isDeleting, setIsDeleting] = useState<boolean>(false)
 
+   const deleteArticleComment = useDeleteArticleComment()
+
    const handleClickDeleteComment = () => {
       setIsDeleting(true)
-      deleteArticlesSlugCommentsId(article.slug, comment.id)
+      deleteArticleComment(article.slug, comment.id)
          .then((response) => {
             onDeleted(comment.id)
          })
          .catch((reason) => {
-            toast(reason.message, { type: "error" })
+            toast(reason.reponse.data, { type: "error" })
          })
          .finally(() => {
             setIsDeleting(false)
@@ -67,7 +69,7 @@ export const ArticleComment = ({
                </div>
 
                <div className="col-auto">
-                  {article.author.username === user?.username && (
+                  {comment.author.username === user?.username && (
                      <Button
                         className="text-danger text-decoration-none"
                         size="sm"

@@ -1,19 +1,17 @@
 import { useDispatch, useSelector } from "react-redux"
 import { RootState } from "../store"
 import { setUser as setUserAction } from "../store/reducers/user"
-import { IUser } from "../types"
+import { IUser } from "../apis"
 
-type User = IUser | null
-type SetUser = (userPayload: User) => void
+type UserState = IUser | null
+type SetUserState = (userState: UserState) => void
 
-export const useUser = (): [User, any] => {
-   const user: User = useSelector(
-      (state: RootState) => state.user.user
-   )
+export const useUser = (): [UserState, any] => {
+   const user: UserState = useSelector((state: RootState) => state.user.user)
    const dispatch = useDispatch()
 
-   const setUser: SetUser = (userPayload) => {
-      dispatch(setUserAction(userPayload))
+   const setUser: SetUserState = (userState) => {
+      dispatch(setUserAction(userState))
    }
 
    return [user, setUser]

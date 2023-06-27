@@ -1,7 +1,7 @@
-import { IArticle, IArticleComment } from "../../types"
+import { IArticle, IComment } from "../../apis"
 
 export interface ArticleCommentProps {
    article: IArticle
-   comment: IArticleComment
+   comment: IComment
    onDeleted: (commentId: number) => void
 }

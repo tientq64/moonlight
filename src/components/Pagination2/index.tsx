@@ -1,7 +1,7 @@
 import classNames from "classnames"
 import { useMemo } from "react"
 import { Pagination } from "react-bootstrap"
-import { Props } from "./types"
+import { Pagination2Props } from "./types"
 
 export const Pagination2 = ({
    className,
@@ -9,7 +9,7 @@ export const Pagination2 = ({
    total,
    pageSize = 10,
    onChange
-}: Props) => {
+}: Pagination2Props) => {
    const totalPage: number = useMemo(() => {
       return Math.ceil(total / pageSize)
    }, [pageSize, total])

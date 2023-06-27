@@ -1,4 +1,4 @@
-export type Props = {
+export type Pagination2Props = {
    className?: string,
    current: number,
    total: number,

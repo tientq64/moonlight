@@ -1,3 +1,7 @@
+export interface ProfileResponse {
+   profile: IProfile
+}
+
 export interface IProfile {
    username: string
    bio: string

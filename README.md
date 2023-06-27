@@ -1,6 +1,7 @@
 # Conduit
 
 ## Todos
+- [x] responsive
 - [ ] i18n
 - [ ] darkmode
 

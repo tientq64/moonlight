@@ -1,22 +1,21 @@
 import { Formik, FormikHelpers } from "formik"
 import { Button, Container, Form, FormControl, FormGroup, Spinner } from "react-bootstrap"
-import { Link, Navigate } from "react-router-dom"
+import { Link, Navigate, useNavigate } from "react-router-dom"
 import { toast } from "react-toastify"
-import { postUsers, postUsersLogin } from "../../apis"
 import { FormControlError } from "../../components"
 import { useUser } from "../../hooks"
-import { IUser } from "../../types"
 import { validationSchema } from "./validationSchema"
+import { IUser, NewUser, useCreateUser, useLogin } from "../../apis"
 
-interface Values {
-   username: string
-   email: string
-   password: string
+interface Values extends NewUser {
    confirmPassword: string
 }
 
 export function RegisterPage() {
    const [user, setUser] = useUser()
+   const navigate = useNavigate()
+
+   const createUser = useCreateUser()
 
    const initialValues: Values = {
       username: "",
@@ -26,32 +25,22 @@ export function RegisterPage() {
    }
 
    const onSubmitRegisterForm = (values: Values, actions: FormikHelpers<Values>) => {
-      postUsers({ user: values })
+      createUser({ user: values })
          .then((response) => {
+            const newUser: IUser = response.data.user
+            setUser(newUser)
             toast("Registered successfully", { type: "success" })
-
-            postUsersLogin({
-               user: {
-                  email: values.email,
-                  password: values.password
-               }
-            })
-               .then((response) => {
-                  const newUser: IUser = response.data.user
-                  setUser(newUser)
-               })
-               .catch((reason) => {
-                  actions.setSubmitting(false)
-                  toast(reason.message, { type: "error" })
-               })
+            navigate(`/profile/${newUser.username}`)
          })
          .catch((reason) => {
-            actions.setSubmitting(false)
             const { errors } = reason.response.data
             for (const field in errors) {
                const messages = errors[field]
                actions.setFieldError(field, `${field} ${messages[0]}`)
             }
+         })
+         .finally(() => {
+            actions.setSubmitting(false)
          })
    }
 

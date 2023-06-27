@@ -1,6 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit"
-
-import { IUser } from "../../types"
+import { IUser } from "../../apis"
 
 interface IState {
    user: IUser | null

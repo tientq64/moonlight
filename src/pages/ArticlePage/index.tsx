@@ -2,39 +2,44 @@ import dayjs from "dayjs"
 import { FormikProvider, useFormik } from "formik"
 import { KeyboardEvent, useEffect, useMemo, useState } from "react"
 import { Button, Col, Container, Form, FormControl, Row, Spinner } from "react-bootstrap"
-import { Link, useParams } from "react-router-dom"
-import {
-   getArticlesSlug,
-   getArticlesSlugComments,
-   postArticlesSlugComments
-} from "../../apis"
+import { Link, useNavigate, useParams } from "react-router-dom"
 import { ArticleComment, Markdown } from "../../components"
 import { useUser } from "../../hooks"
-import { IArticle, IArticleComment } from "../../types"
 import { truncateString } from "../../utils"
 import { commentSchema } from "./commentSchema"
+import { IArticle, IComment, NewComment, useCreateArticleComment, useCreateArticleFavorite, useDeleteArticle, useDeleteArticleFavorite, useGetArticle, useGetArticleComments } from "../../apis"
+import { toast } from "react-toastify"
 
 type Params = {
    slug?: string
 }
 
-interface CommentValues {
-   body: string
-}
-
 export function ArticlePage() {
    const [user] = useUser()
    const { slug } = useParams<Params>()
+   const navigate = useNavigate()
 
    const [article, setArticle] = useState<IArticle | null>(null)
-   const [comments, setComments] = useState<IArticleComment[]>([])
+   const [isDeletingArticle, setIsDeletingArticle] = useState<boolean>(false)
+   const [favorited, setFavorited] = useState<boolean>(false)
+   const [isFavoriting, setIsFavoriting] = useState<boolean>(false)
+
+   const [comments, setComments] = useState<IComment[]>([])
    const [isLoadingComments, setIsLoadingComments] = useState<boolean>(false)
+
+   const createArticleComment = useCreateArticleComment()
+   const getArticle = useGetArticle()
+   const getArticleComments = useGetArticleComments()
+   const deleteArticle = useDeleteArticle()
+
+   const createArticleFavorite = useCreateArticleFavorite()
+   const deleteArticleFavorite = useDeleteArticleFavorite()
 
    const isMyArticle: boolean = useMemo(() => {
       return Boolean(user && article && user.username === article.author.username)
    }, [user, article])
 
-   const commentFormik = useFormik<CommentValues>({
+   const commentFormik = useFormik<NewComment>({
       initialValues: {
          body: ""
       },
@@ -45,13 +50,13 @@ export function ArticlePage() {
       onSubmit(values, actions) {
          if (!slug) return
 
-         postArticlesSlugComments(slug, {
+         createArticleComment(slug, {
             comment: {
                body: values.body.trim()
             }
          })
             .then((response) => {
-               const newComments: IArticleComment[] = [response.data.comment, ...comments]
+               const newComments: IComment[] = [response.data.comment, ...comments]
                setComments(newComments)
                actions.resetForm()
             })
@@ -60,6 +65,52 @@ export function ArticlePage() {
             })
       }
    })
+
+   const handleClickFavoriteArticle = (): void => {
+      if (!user) {
+         navigate("/login")
+         return
+      }
+      if (!article) return
+
+      const api = favorited ? deleteArticleFavorite : createArticleFavorite
+      const prevFavorited = favorited
+
+      setFavorited(!favorited)
+      setIsFavoriting(true)
+
+      api(article.slug)
+         .then((response) => {
+            setFavorited(response.data.article.favorited)
+         })
+         .catch((reason) => {
+            setFavorited(prevFavorited)
+            toast(reason.response.data, { type: "error" })
+         })
+         .finally(() => {
+            setIsFavoriting(false)
+         })
+   }
+
+   const handleClickDeleteArticle = (): void => {
+      if (!slug) return
+
+      if (window.confirm("Do you want to delete this article?")) {
+         setIsDeletingArticle(true)
+
+         deleteArticle(slug)
+            .then((response) => {
+               toast("Article deleted!", { type: "success" })
+               navigate(-1)
+            })
+            .catch((reason) => {
+               toast(reason.reponse.data, { type: "error" })
+            })
+            .finally(() => {
+               setIsDeletingArticle(false)
+            })
+      }
+   }
 
    const handleKeyDownCommentBody = (event: KeyboardEvent): void => {
       if (event.repeat) return
@@ -71,30 +122,38 @@ export function ArticlePage() {
 
    const handleDeletedComment = (commentId: number): void => {
       setComments((prevComments) => {
-         const newComments: IArticleComment[] = prevComments.filter((comment2: IArticleComment) => {
+         const newComments: IComment[] = prevComments.filter((comment2: IComment) => {
             return comment2.id !== commentId
          })
          return newComments
       })
+      toast("Comment deleted!", { type: "success" })
    }
 
    useEffect(() => {
       if (!slug) return
 
-      getArticlesSlug(slug)
+      setIsLoadingComments(true)
+
+      getArticle(slug)
          .then((response) => {
             setArticle(response.data.article)
          })
 
-      setIsLoadingComments(true)
-      getArticlesSlugComments(slug)
+      getArticleComments(slug)
          .then((response) => {
-            setComments(response.data.comments.toReversed())
+            setComments(response.data.comments.reverse())
          })
          .finally(() => {
             setIsLoadingComments(false)
          })
    }, [])
+
+   useEffect(() => {
+      if (!article) return
+
+      setFavorited(article.favorited)
+   }, [article])
 
    return (
       <div>
@@ -137,21 +196,42 @@ export function ArticlePage() {
                            <div className="d-flex gap-3">
                               {!isMyArticle && (
                                  <>
-                                    <Button variant={article.favorited ? "primary" : "outline-primary"}>
-                                       <i className="fas fa-heart me-2" />
-                                       {article.favorited ? "Unfavorite" : "Favorite"} article
+                                    <Button
+                                       variant={favorited ? "primary" : "outline-primary"}
+                                       disabled={isFavoriting}
+                                       onClick={handleClickFavoriteArticle}
+                                    >
+                                       {isFavoriting && (
+                                          <>
+                                             <Spinner className="me-2" size="sm" />
+                                             {favorited ? "Favoriting" : "Unfavoriting"}
+                                          </>
+                                       )}
+                                       {!isFavoriting && (
+                                          <>
+                                             <i className="fas fa-heart me-2" />
+                                             {favorited ? "Unfavorite" : "Favorite"} article
+                                          </>
+                                       )}
                                     </Button>
                                  </>
                               )}
 
                               {isMyArticle && (
                                  <>
-                                    <Link className="btn btn-light" to={`/editor/${article.slug}`}>
+                                    <Link
+                                       className="btn btn-light"
+                                       to={`/editor/${article.slug}`}
+                                    >
                                        <i className="fas fa-edit me-2" />
                                        Edit article
                                     </Link>
 
-                                    <Button variant="danger">
+                                    <Button
+                                       variant="danger"
+                                       disabled={isDeletingArticle}
+                                       onClick={handleClickDeleteArticle}
+                                    >
                                        <i className="fas fa-trash me-2" />
                                        Delete article
                                     </Button>

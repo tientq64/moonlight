@@ -1,11 +1,10 @@
-import { useDispatch } from "react-redux"
-import { setUser } from "../store/reducers/user"
+import { useUser } from "./useUser"
 
 export const useLogout = () => {
-   const dispatch = useDispatch()
+   const [user, setUser] = useUser()
 
-   return (() => {
-      dispatch(setUser(null))
-      localStorage.removeItem("userToken")
-   })
+   const logout = (): void => {
+      setUser(null)
+   }
+   return logout
 }

@@ -8,18 +8,17 @@ import { UIEvent, useEffect, useRef, useState } from "react"
 import { Button, Col, Container, Form, FormControl, FormGroup, Row, Spinner } from "react-bootstrap"
 import { Navigate, useNavigate, useParams } from "react-router-dom"
 import { TagsInput } from "react-tag-input-component"
-import { getArticlesSlug, postArticles, putArticlesSlug } from "../../apis"
 import { FormControlError, Markdown } from "../../components"
 import { useUser } from "../../hooks"
-import { IArticle, IArticleEdit } from "../../types"
 import "./styles.scss"
 import { validationSchema } from "./validationSchema"
+import { IArticle, NewArticle, UpdateArticle, useCreateArticle, useGetArticle, useUpdateArticle } from "../../apis"
 
 type Params = {
    slug?: string
 }
 
-type ArticleValues = IArticleEdit | IArticle
+type EditArticle = NewArticle | UpdateArticle
 
 let cm: CodeMirror.EditorFromTextArea | null = null
 let isCmScrolling: boolean = true
@@ -29,13 +28,17 @@ export function EditorPage() {
    const [user] = useUser()
    const navigate = useNavigate()
 
-   const [article, setArticle] = useState<ArticleValues | null>(null)
+   const [article, setArticle] = useState<EditArticle | null>(null)
    const [isLoadingArticle, setIsLoadingArticle] = useState<boolean>(false)
    const [isPreviewBody, setIsPreviewBody] = useState<boolean>(true)
    const bodyTextAreaRef = useRef(null)
    const bodyPreviewRef = useRef(null)
 
-   const formik = useFormik<ArticleValues>({
+   const getArticle = useGetArticle()
+   const createArticle = useCreateArticle()
+   const updateArticle = useUpdateArticle()
+
+   const formik = useFormik<EditArticle>({
       initialValues: {
          title: "",
          description: "",
@@ -46,10 +49,14 @@ export function EditorPage() {
       validationSchema: validationSchema,
 
       onSubmit(values, actions) {
-         const funcApiPromise: Promise<AxiosResponse> = slug
-            ? putArticlesSlug(slug, { article: values })
-            : postArticles({ article: values })
-         funcApiPromise
+         const apiPromise: Promise<AxiosResponse> = slug
+            ? updateArticle(slug, {
+               article: values
+            })
+            : createArticle({
+               article: values
+            })
+         apiPromise
             .then((response: AxiosResponse) => {
                navigate(`/article/${response.data.article.slug}`)
             })
@@ -59,11 +66,11 @@ export function EditorPage() {
       }
    })
 
-   const handleClickTogglePreviewBody = () => {
+   const handleClickTogglePreviewBody = (): void => {
       setIsPreviewBody(!isPreviewBody)
    }
 
-   const handleScrollPreviewBody = (event: UIEvent<HTMLDivElement>) => {
+   const handleScrollPreviewBody = (event: UIEvent<HTMLDivElement>): void => {
       if (!cm) return
       if (isCmScrolling) return
 
@@ -138,7 +145,7 @@ export function EditorPage() {
    useEffect(() => {
       if (slug) {
          setIsLoadingArticle(true)
-         getArticlesSlug(slug)
+         getArticle(slug)
             .then((response) => {
                const article2: IArticle = response.data.article
                if (article2.author.username === user?.username) {
@@ -152,7 +159,7 @@ export function EditorPage() {
                setIsLoadingArticle(false)
             })
       } else {
-         const newArticle: IArticleEdit = {
+         const newArticle: EditArticle = {
             title: "",
             description: "",
             body: "",
@@ -209,7 +216,7 @@ export function EditorPage() {
                      <Row className="g-0">
                         <Col
                            className={classNames(
-                              isPreviewBody && "col-lg-6 pe-3"
+                              isPreviewBody && "col-lg-6"
                            )}
                            onMouseDown={() => isCmScrolling = true}
                            onWheel={() => isCmScrolling = true}
