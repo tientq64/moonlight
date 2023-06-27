@@ -178,14 +178,19 @@ export function ProfilePage() {
                </div>
 
                <Container>
-                  <div className="py-5">
+                  <div className="py-3 py-lg-5">
                      <Tab.Container
                         activeKey={activedTab}
                         onSelect={(activeKey: any) => setActivedTab(activeKey)}
                      >
                         <Row>
                            <Col md={4} xl={3}>
-                              <Nav className="flex-column sticky-top bg-primary bg-opacity-15 p-3 rounded" variant="pills" style={{ top: 96 }}>
+                              <Nav
+                                 className="flex-row flex-lg-column sticky-top bg-primary bg-opacity-15 p-3 rounded"
+                                 variant="pills"
+                                 fill
+                                 style={{ top: 96 }}
+                              >
                                  <Nav.Item>
                                     <Nav.Link eventKey={PageTabs.MyArticles}>
                                        <i className="fas fa-user me-2" />

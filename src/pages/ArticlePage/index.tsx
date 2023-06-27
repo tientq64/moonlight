@@ -247,6 +247,18 @@ export function ArticlePage() {
                   <div className="py-4">
                      <Markdown content={article.body} />
 
+                     <div className="d-flex flex-wrap gap-1 my-5">
+                        {article.tagList.map((tag, index) => (
+                           <Button
+                              key={index}
+                              className="py-0"
+                              variant="outline-primary"
+                              size="sm"
+                           > {truncateString(tag, 20)}
+                           </Button>
+                        ))}
+                     </div>
+
                      <div className="border-top mt-4" />
 
                      {!user && (
@@ -274,7 +286,16 @@ export function ArticlePage() {
                                  <Button
                                     type="submit"
                                     disabled={commentFormik.isSubmitting || !commentFormik.isValid}
-                                 > Post comment
+                                 >
+                                    {commentFormik.isSubmitting && (
+                                       <>
+                                          <Spinner className="me-2" size="sm" />
+                                          Commenting
+                                       </>
+                                    )}
+                                    {!commentFormik.isSubmitting && (
+                                       "Post comment"
+                                    )}
                                  </Button>
                               </div>
                            </Form>

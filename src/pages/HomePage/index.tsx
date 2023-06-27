@@ -83,14 +83,14 @@ export function HomePage() {
             <h1 className="fs-1 fw-bold">
                Mo
                <img className={styles.bannerLogo} src={logo} alt="Logo" />
-               nlight
+               n
             </h1>
             <div className="lead">
                A place to share your life (at the end of) every day.
             </div>
          </div>
 
-         <Container className="my-5">
+         <Container className="py-3 py-lg-5">
             <Tab.Container
                activeKey={activedTab}
                onSelect={(activeKey: any) => setActivedTab(activeKey)}
@@ -98,13 +98,14 @@ export function HomePage() {
                <Row>
                   <Col md={4} xl={3}>
                      <Nav
-                        className="flex-column sticky-top bg-primary bg-opacity-15 p-3 rounded"
+                        className="flex-row flex-lg-column sticky-top bg-primary bg-opacity-15 p-3 rounded"
                         variant="pills"
+                        fill
                         style={{ top: 96 }}
                      >
                         {user && (
                            <>
-                              <Nav.Item>
+                              <Nav.Item className="text-start">
                                  <Nav.Link eventKey="yourFeed">
                                     <i className="fas fa-user me-2" />
                                     Your feed
@@ -113,7 +114,7 @@ export function HomePage() {
                            </>
                         )}
 
-                        <Nav.Item>
+                        <Nav.Item className="text-start">
                            <Nav.Link eventKey="globalFeed">
                               <i className="far fa-globe me-2" />
                               Global feed
@@ -123,6 +124,7 @@ export function HomePage() {
                         <div className="border-top my-1" />
 
                         <Nav.Item
+                           className="text-start"
                            aria-controls="collapseTags"
                            onClick={() => setIsCollapseInTags(!isCollapseInTags)}
                         >
@@ -135,14 +137,20 @@ export function HomePage() {
                            className="mt-1"
                            in={isCollapseInTags}
                         >
-                           <div id="collapseTags">
-                              {tags.map((tag, index) => (
-                                 <Nav.Item key={index}>
-                                    <Nav.Link eventKey={"#" + tag}>
-                                       {tag}
-                                    </Nav.Link>
-                                 </Nav.Item>
-                              ))}
+                           <div id="collapseTags" className="w-100">
+                              <Nav
+                                 className="flex-column"
+                                 variant="pills"
+                                 fill
+                              >
+                                 {tags.map((tag, index) => (
+                                    <Nav.Item key={index} className="text-start">
+                                       <Nav.Link eventKey={"#" + tag}>
+                                          {tag || "\xa0"}
+                                       </Nav.Link>
+                                    </Nav.Item>
+                                 ))}
+                              </Nav>
                            </div>
                         </Collapse>
                      </Nav>

@@ -17,7 +17,7 @@ export const Header = () => {
          <Container>
             <Navbar.Brand as={Link} className="fw-semibold d-flex" to="/">
                {/* <img className={styles.logo} src={logo} alt="Logo" /> */}
-               Moonlight
+               Moon
             </Navbar.Brand>
 
             <Navbar.Collapse>
@@ -64,6 +64,11 @@ export const Header = () => {
                               <Dropdown.Item>
                                  <i className="fas fa-circle-half-stroke me-2"></i>
                                  Dark mode
+                              </Dropdown.Item>
+
+                              <Dropdown.Item>
+                                 <i className="fas fa-language me-2"></i>
+                                 Language
                               </Dropdown.Item>
 
                               <Dropdown.Divider />

@@ -49,6 +49,8 @@ export function EditorPage() {
       validationSchema: validationSchema,
 
       onSubmit(values, actions) {
+         cm?.setOption("readOnly", true)
+
          const apiPromise: Promise<AxiosResponse> = slug
             ? updateArticle(slug, {
                article: values
@@ -62,6 +64,9 @@ export function EditorPage() {
             })
             .catch(() => {
                actions.setSubmitting(false)
+            })
+            .finally(() => {
+               cm?.setOption("readOnly", false)
             })
       }
    })
@@ -216,7 +221,7 @@ export function EditorPage() {
                      <Row className="g-0">
                         <Col
                            className={classNames(
-                              isPreviewBody && "col-lg-6"
+                              isPreviewBody && "col-lg-6 pe-lg-3"
                            )}
                            onMouseDown={() => isCmScrolling = true}
                            onWheel={() => isCmScrolling = true}
@@ -259,8 +264,18 @@ export function EditorPage() {
                            size="lg"
                            disabled={formik.isSubmitting}
                         >
-                           <i className="fas fa-circle-arrow-up me-2" />
-                           Publish article
+                           {formik.isSubmitting && (
+                              <>
+                                 <Spinner />
+                                 Publishing article
+                              </>
+                           )}
+                           {!formik.isSubmitting && (
+                              <>
+                                 <i className="fas fa-circle-arrow-up me-2" />
+                                 Publish article
+                              </>
+                           )}
                         </Button>
                      </div>
                   </FormGroup>
